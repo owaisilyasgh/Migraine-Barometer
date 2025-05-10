@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PressureWise Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+</head>
+<body>
+    <header>
+        <h1>PressureWise Dashboard</h1>
+    </header>
+    <main>
+        <section id="pressure-display">
+            <h2>Surface Pressure Forecast</h2>
+            <div id="location-info"></div>
+            <div id="chart-container">
+                <svg id="pressure-chart" width="100%" height="300"></svg>
+            </div>
+            <p id="last-updated"></p>
+            <p id="health-info">
+                Barometric pressure fluctuations can impact health. This app helps you track changes and learn your sensitivity.
+            </p>
+        </section>
+
+        <section id="symptom-logging">
+            <h2>Log Symptom Event</h2>
+            <form id="symptom-form">
+                <div>
+                    <label for="symptom-start">Start Time:</label>
+                    <input type="datetime-local" id="symptom-start" required>
+                </div>
+                <div>
+                    <label for="symptom-end">End Time:</label>
+                    <input type="datetime-local" id="symptom-end" required>
+                </div>
+                <div>
+                    <label for="pain-level">Pain Level (1-10):</label>
+                    <input type="number" id="pain-level" min="1" max="10" required>
+                </div>
+                <button type="submit">Log Symptom</button>
+            </form>
+            <button id="analyze-symptoms">Analyze My Symptoms</button>
+            <p id="learning-status"></p>
+        </section>
+
+        <section id="symptom-forecast">
+            <h2>Personalized Symptom Forecast</h2>
+            <p id="forecast-message">Log symptoms and analyze to enable personalized forecasts.</p>
+        </section>
+         <p id="api-attribution" style="font-size: 0.8em; text-align: center; margin-top: 20px;">
+            Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>
+        </p>
+    </main>
+
+    <script src="api.js"></script>
+    <script src="symptomLogger.js"></script>
+    <script src="learning.js"></script>
+    <script src="ui.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
