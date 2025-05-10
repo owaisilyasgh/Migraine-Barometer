@@ -1,7 +1,7 @@
 {
-  "name": "PressureWise Dashboard",
-  "short_name": "PressureWise",
-  "description": "PWA to track barometric pressure and predict symptom likelihood.",
+  "name": "Migraine Barometer",
+  "short_name": "MigraineBaro",
+  "description": "PWA to track barometric pressure and predict migraine likelihood.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#1a1a2e",
