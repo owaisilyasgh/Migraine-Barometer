@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PressureWise Dashboard</title>
+    <title>Migraine Barometer</title> <!-- Updated -->
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a2e">
 </head>
 <body>
     <header>
-        <h1>PressureWise Dashboard</h1>
+        <h1>Migraine Barometer</h1> <!-- Updated -->
     </header>
     <main>
         <section id="pressure-display">
@@ -21,12 +21,12 @@
             </div>
             <p id="last-updated"></p>
             <p id="health-info">
-                Barometric pressure fluctuations can impact health. This app helps you track changes and learn your sensitivity.
+                Barometric pressure fluctuations can trigger migraines for some individuals. This app helps you track pressure changes and learn your potential sensitivity.
             </p>
         </section>
 
         <section id="symptom-logging">
-            <h2>Log Symptom Event</h2>
+            <h2>Log Migraine Event</h2> <!-- Slightly more specific -->
             <form id="symptom-form">
                 <div>
                     <label for="symptom-start">Start Time:</label>
@@ -40,15 +40,15 @@
                     <label for="pain-level">Pain Level (1-10):</label>
                     <input type="number" id="pain-level" min="1" max="10" required>
                 </div>
-                <button type="submit">Log Symptom</button>
+                <button type="submit">Log Event</button>
             </form>
-            <button id="analyze-symptoms">Analyze My Symptoms</button>
+            <button id="analyze-symptoms">Analyze My Migraine Triggers</button> <!-- More specific -->
             <p id="learning-status"></p>
         </section>
 
         <section id="symptom-forecast">
-            <h2>Personalized Symptom Forecast</h2>
-            <p id="forecast-message">Log symptoms and analyze to enable personalized forecasts.</p>
+            <h2>Personalized Migraine Forecast</h2> <!-- More specific -->
+            <p id="forecast-message">Log migraine events and analyze to enable personalized forecasts.</p>
         </section>
          <p id="api-attribution" style="font-size: 0.8em; text-align: center; margin-top: 20px;">
             Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>
