@@ -3,62 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Migraine Barometer</title> <!-- Updated -->
+    <title>Pressure & Migraine Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1a2e">
+    <meta name="theme-color" content="#317EFB"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="PressureTrack">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
+    <div id="notification-area"></div>
+
     <header>
-        <h1>Migraine Barometer</h1> <!-- Updated -->
+        <h1>Pressure & Migraine Tracker</h1>
     </header>
+
     <main>
-        <section id="pressure-display">
-            <h2>Surface Pressure Forecast</h2>
-            <div id="location-info"></div>
-            <div id="chart-container">
-                <svg id="pressure-chart" width="100%" height="300"></svg>
+        <section id="pressure-chart-section">
+            <h2>Surface Pressure Over Time</h2>
+            <div class="chart-container large-chart-container">
+                <canvas id="pressureChart"></canvas>
             </div>
-            <p id="last-updated"></p>
-            <p id="health-info">
-                Barometric pressure fluctuations can trigger migraines for some individuals. This app helps you track pressure changes and learn your potential sensitivity.
-            </p>
+            <div class="chart-interaction-controls">
+                <p>Click on the chart to select a data point, then mark it as start/end of an event.</p>
+                <p>Selected Point Time: <span id="clickedChartTime">N/A</span>, Pressure: <span id="clickedChartPressure">N/A</span></p>
+                <button id="markStartTimeBtn">Mark Event Start</button>
+                <button id="markEndTimeBtn" disabled>Mark Event End</button>
+                <button id="saveMarkedEventBtn" disabled>Save Marked Pressure Event</button>
+                <button id="clearMarkingBtn" disabled>Clear Marking</button>
+                <p>Marking Start: <span id="selectedStartTimeDisplay">N/A</span></p>
+                <p>Marking End: <span id="selectedEndTimeDisplay">N/A</span></p>
+            </div>
+            <h3>Your Marked Pressure Events</h3>
+            <div class="user-events-controls">
+                <button id="exportUserEventsBtn">Export Marked Events (JSON)</button>
+                <button id="mergeEventsBtn" disabled>Merge Selected (2)</button>
+            </div>
+            <table id="userMarkedEventsTable">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Duration (hrs)</th>
+                        <th>Start P (hPa)</th>
+                        <th>End P (hPa)</th>
+                        <th>Change (hPa)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- User marked events will be listed here -->
+                </tbody>
+            </table>
         </section>
 
-        <section id="symptom-logging">
-            <h2>Log Migraine Event</h2> <!-- Slightly more specific -->
-            <form id="symptom-form">
+        <section id="pressure-events-section">
+            <h2>Detected Pressure Events (Automated)</h2>
+            <table id="pressureEventsTable">
+                <thead>
+                    <tr>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Duration (hrs)</th>
+                        <th>Pressure Change (hPa)</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <section id="migraine-log-section">
+            <h2>Log Migraine Event</h2>
+            <form id="migraineForm">
                 <div>
-                    <label for="symptom-start">Start Time:</label>
-                    <input type="datetime-local" id="symptom-start" required>
+                    <label for="migraineStartTime">Start Time:</label>
+                    <input type="datetime-local" id="migraineStartTime" required>
                 </div>
                 <div>
-                    <label for="symptom-end">End Time:</label>
-                    <input type="datetime-local" id="symptom-end" required>
+                    <label for="migraineEndTime">End Time:</label>
+                    <input type="datetime-local" id="migraineEndTime" required>
                 </div>
-                <div>
-                    <label for="pain-level">Pain Level (1-10):</label>
-                    <input type="number" id="pain-level" min="1" max="10" required>
-                </div>
-                <button type="submit">Log Event</button>
+                <button type="submit">Log Migraine</button>
             </form>
-            <button id="analyze-symptoms">Analyze My Migraine Triggers</button> <!-- More specific -->
-            <p id="learning-status"></p>
+            <h3>Logged Migraines</h3>
+            <ul id="migraineList"></ul>
         </section>
-
-        <section id="symptom-forecast">
-            <h2>Personalized Migraine Forecast</h2> <!-- More specific -->
-            <p id="forecast-message">Log migraine events and analyze to enable personalized forecasts.</p>
-        </section>
-         <p id="api-attribution" style="font-size: 0.8em; text-align: center; margin-top: 20px;">
-            Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>
-        </p>
     </main>
 
-    <script src="api.js"></script>
-    <script src="symptomLogger.js"></script>
-    <script src="learning.js"></script>
-    <script src="ui.js"></script>
+    <footer>
+        <p>Pressure Tracker PWA</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="db.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
