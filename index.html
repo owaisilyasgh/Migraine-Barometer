@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pressure & Migraine Tracker</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#317EFB"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="PressureTrack">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png"> 
 </head>
 <body>
     <div id="notification-area"></div>
@@ -23,47 +23,20 @@
         <section id="pressure-chart-section">
             <h2>Surface Pressure Over Time</h2>
             <div class="chart-container large-chart-container">
-                <canvas id="pressureChart"></canvas>
+                <div id="pressureChart"></div>
             </div>
-            <div class="chart-interaction-controls">
-                <p>Click on the chart to select a data point, then mark it as start/end of an event.</p>
-                <p>Selected Point Time: <span id="clickedChartTime">N/A</span>, Pressure: <span id="clickedChartPressure">N/A</span></p>
-                <button id="markStartTimeBtn">Mark Event Start</button>
-                <button id="markEndTimeBtn" disabled>Mark Event End</button>
-                <button id="saveMarkedEventBtn" disabled>Save Marked Pressure Event</button>
-                <button id="clearMarkingBtn" disabled>Clear Marking</button>
-                <p>Marking Start: <span id="selectedStartTimeDisplay">N/A</span></p>
-                <p>Marking End: <span id="selectedEndTimeDisplay">N/A</span></p>
-            </div>
-            <h3>Your Marked Pressure Events</h3>
-            <div class="user-events-controls">
-                <button id="exportUserEventsBtn">Export Marked Events (JSON)</button>
-                <button id="mergeEventsBtn" disabled>Merge Selected (2)</button>
-            </div>
-            <table id="userMarkedEventsTable">
-                <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Duration (hrs)</th>
-                        <th>Start P (hPa)</th>
-                        <th>End P (hPa)</th>
-                        <th>Change (hPa)</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- User marked events will be listed here -->
-                </tbody>
-            </table>
         </section>
 
         <section id="pressure-events-section">
             <h2>Detected Pressure Events (Automated)</h2>
-            <table id="pressureEventsTable">
+            <div class="automated-events-controls">
+                <button id="mergeAutomatedEventsBtn" disabled>Merge Selected Automated (2)</button>
+                <button id="unmergeAutomatedEventBtn" disabled>Unmerge Selected (1)</button>
+            </div>
+            <table id="pressureEventsTable"> 
                 <thead>
                     <tr>
+                        <th>Select</th>
                         <th>Start Time</th>
                         <th>End Time</th>
                         <th>Duration (hrs)</th>
@@ -97,10 +70,10 @@
         <p>Pressure Tracker PWA</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.min.js"></script>
-    <script src="db.js"></script>
-    <script src="app.js"></script>
+    {/* Load libraries first with defer */}
+    <script src="https://code.highcharts.com/highcharts.js" defer></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js" defer></script>
+    <script type="module" src="js/app.js" defer></script>
+
 </body>
 </html>
