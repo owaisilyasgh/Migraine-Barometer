@@ -1,81 +1,114 @@
 // js/pressureEventManager.js
-import { MIN_DURATION_HOURS, MIN_PRESSURE_CHANGE_HPA } from './config.js';
-import { showNotification } from './utils.js';
-import { updateChartPlotBand } from './chartManager.js';
-// We'll need a way to re-render the table, so uiRenderer will be imported by app.js
-// and app.js will pass a reference or make it callable.
+import { MIN_PRESSURE_CHANGE_HPA, MIN_DURATION_HOURS, EVENTS_TABLE_BODY_ID } from './config.js';
+// Note: showNotification and updateChartPlotBand will be passed in from app.js
 
 let allAutomatedEvents = [];
-let hourlyTimesCache = []; // Cache hourlyTimes for pressure calculation if needed
-let hourlyPressuresCache = []; // Cache hourlyPressures
+let hourlyTimesCache = [];
+let hourlyPressuresCache = [];
 
 /**
- * Detects and stores automated pressure events.
- * @param {number[]} times - Array of Unix timestamps.
- * @param {number[]} pressures - Array of pressure values.
- * @returns {object[]} The array of detected events.
+ * Assigns a severity score based on the absolute rate of pressure change.
+ * @param {number} absoluteRateOfChange - The absolute rate of pressure change in hPa/hour.
+ * @returns {string} The severity score ('Low', 'Medium', 'High').
  */
-export function detectAndStoreAutomatedPressureEvents(times, pressures) {
+function getSeverityScore(absoluteRateOfChange) {
+    if (absoluteRateOfChange >= 1.0) {
+        return 'High';
+    } else if (absoluteRateOfChange >= 0.5) {
+        return 'Medium';
+    } else {
+        return 'Low';
+    }
+}
+
+/**
+ * Calculates rate of change and severity for an event object.
+ * Modifies the event object in place.
+ * @param {object} event - The event object.
+ */
+function calculateRateAndSeverity(event) {
+    if (event.durationHours > 0 && typeof event.pressureChange === 'number') {
+        event.rateOfChange = parseFloat((event.pressureChange / event.durationHours).toFixed(2)); // Signed rate
+        const absoluteRate = Math.abs(event.rateOfChange);
+        event.severity = getSeverityScore(absoluteRate);
+    } else {
+        event.rateOfChange = 'N/A';
+        event.severity = 'N/A';
+    }
+}
+
+
+export function detectAndStoreAutomatedPressureEvents(times, pressures, showNotification, updateChartPlotBand) {
     allAutomatedEvents = []; // Reset
-    hourlyTimesCache = [...times]; // Store for merge/unmerge pressure lookups
+    hourlyTimesCache = [...times];
     hourlyPressuresCache = [...pressures];
 
     if (!times || !pressures || times.length < 2 || pressures.length < 2 || times.length !== pressures.length) {
         console.error("Insufficient or invalid data for event detection in pressureEventManager.");
-        return [];
+        return allAutomatedEvents;
     }
 
-    const n = times.length;
+    let ongoingEventType = null; // 'rise' or 'fall'
     let eventSegmentStartIdx = 0;
 
-    for (let i = 1; i < n; i++) {
-        const pressureAtEventSegmentStart = pressures[eventSegmentStartIdx];
-        const pressureAtPotentialEventEnd = pressures[i - 1];
-        const pressureAtCurrentPoint = pressures[i];
-        const trendOfEventSegment = Math.sign(pressureAtPotentialEventEnd - pressureAtEventSegmentStart);
-        const changeAfterPotentialEventEnd = Math.sign(pressureAtCurrentPoint - pressureAtPotentialEventEnd);
+    for (let i = 1; i < times.length; i++) {
+        const pressureDiff = pressures[i] - pressures[i - 1];
+        let currentTrend = null;
+        if (pressureDiff > 0) currentTrend = 'rise';
+        else if (pressureDiff < 0) currentTrend = 'fall';
 
-        if (trendOfEventSegment !== 0 && changeAfterPotentialEventEnd !== 0 && trendOfEventSegment !== changeAfterPotentialEventEnd) {
-            const startTime = times[eventSegmentStartIdx];
-            const endTime = times[i - 1];
+        if (ongoingEventType === null && currentTrend !== null) {
+            ongoingEventType = currentTrend;
+            eventSegmentStartIdx = i - 1;
+        } else if (currentTrend !== null && ongoingEventType !== currentTrend) {
+            // Trend changed, finalize previous event if significant
+            const eventEndTime = times[i - 1];
+            const eventDurationSecs = eventEndTime - times[eventSegmentStartIdx];
+            const durationHrs = eventDurationSecs / 3600;
             const endP = pressures[i - 1];
-            const durationHrs = (endTime - startTime) / 3600;
-            const pChange = parseFloat((endP - pressureAtEventSegmentStart).toFixed(1));
-            let eventType = (trendOfEventSegment === 1) ? "Rise" : "Fall";
+            const pChange = parseFloat((endP - pressures[eventSegmentStartIdx]).toFixed(1));
 
             if (durationHrs >= MIN_DURATION_HOURS && Math.abs(pChange) >= MIN_PRESSURE_CHANGE_HPA) {
-                allAutomatedEvents.push({
-                    id: 'auto-' + startTime + '-' + endTime,
-                    startTime: startTime, endTime: endTime,
+                const newEvent = {
+                    id: `auto_${times[eventSegmentStartIdx]}_${eventEndTime}`,
+                    startTime: times[eventSegmentStartIdx],
+                    endTime: eventEndTime,
                     durationHours: parseFloat(durationHrs.toFixed(1)),
-                    pressureChange: pChange, type: eventType,
-                    isMerged: false, originalEventsData: null
-                });
+                    pressureChange: pChange,
+                    type: ongoingEventType,
+                    isMerged: false,
+                    originalEventsData: null
+                };
+                calculateRateAndSeverity(newEvent); // Calculate and add rate/severity
+                allAutomatedEvents.push(newEvent);
             }
-            eventSegmentStartIdx = i - 1;
-        } else if (trendOfEventSegment === 0 && changeAfterPotentialEventEnd !== 0) {
+            // Start new event segment
+            ongoingEventType = currentTrend;
             eventSegmentStartIdx = i - 1;
         }
     }
 
-    if (eventSegmentStartIdx < n - 1) {
-        const startTime = times[eventSegmentStartIdx];
-        const endTime = times[n - 1];
-        const endP = pressures[n - 1];
-        const durationHrs = (endTime - startTime) / 3600;
+    // Finalize any ongoing event at the end of the data
+    if (ongoingEventType !== null) {
+        const eventEndTime = times[times.length - 1];
+        const eventDurationSecs = eventEndTime - times[eventSegmentStartIdx];
+        const durationHrs = eventDurationSecs / 3600;
+        const endP = pressures[pressures.length - 1];
         const pChange = parseFloat((endP - pressures[eventSegmentStartIdx]).toFixed(1));
-        let ongoingEventType = "";
-        if (pChange > 0) ongoingEventType = "Ongoing Rise";
-        else if (pChange < 0) ongoingEventType = "Ongoing Fall";
 
-        if (ongoingEventType && Math.abs(pChange) >= MIN_PRESSURE_CHANGE_HPA) {
-            allAutomatedEvents.push({
-                id: 'auto-' + startTime + '-' + endTime,
-                startTime: startTime, endTime: endTime,
+        if (durationHrs >= MIN_DURATION_HOURS && Math.abs(pChange) >= MIN_PRESSURE_CHANGE_HPA) {
+             const newEvent = {
+                id: `auto_${times[eventSegmentStartIdx]}_${eventEndTime}`,
+                startTime: times[eventSegmentStartIdx],
+                endTime: eventEndTime,
                 durationHours: parseFloat(durationHrs.toFixed(1)),
-                pressureChange: pChange, type: ongoingEventType,
-                isMerged: false, originalEventsData: null
-            });
+                pressureChange: pChange,
+                type: ongoingEventType,
+                isMerged: false,
+                originalEventsData: null
+            };
+            calculateRateAndSeverity(newEvent); // Calculate and add rate/severity
+            allAutomatedEvents.push(newEvent);
         }
     }
     allAutomatedEvents.sort((a, b) => a.startTime - b.startTime);
@@ -83,66 +116,83 @@ export function detectAndStoreAutomatedPressureEvents(times, pressures) {
 }
 
 export function getAllAutomatedEvents() {
-    return [...allAutomatedEvents]; // Return a copy
+    return [...allAutomatedEvents];
 }
 
-export function handleMergeAutomatedEvents(getCurrentlyHighlightedEventId, rerenderTableCallback) {
-    const selectedCheckboxes = Array.from(document.querySelectorAll(`#${'pressureEventsTable'} tbody input[type="checkbox"]:checked`)); // Using ID from config
+export function handleMergeAutomatedEvents(getCurrentlyHighlightedEventId, showNotification, updateChartPlotBand) {
+    const tableElement = document.getElementById(EVENTS_TABLE_BODY_ID);
+    if (!tableElement) return false;
+
+    const selectedCheckboxes = Array.from(tableElement.querySelectorAll('tbody input[type="checkbox"]:checked'));
     const eventIdsToMerge = selectedCheckboxes.map(cb => cb.dataset.eventId);
 
-    const eventsToMerge = allAutomatedEvents.filter(event => eventIdsToMerge.includes(event.id));
-    if (eventsToMerge.some(e => e.isMerged) || eventsToMerge.length !== 2) {
-        showNotification("Cannot merge: select two original (non-merged) events.", "error");
+    if (eventIdsToMerge.length !== 2) {
+        showNotification("Please select exactly two automated events to merge.", "error");
         return false;
     }
-    const currentlyHighlightedId = getCurrentlyHighlightedEventId();
-    if (eventIdsToMerge.includes(currentlyHighlightedId)) {
-        updateChartPlotBand(null);
-        // currentHighlightState will be reset in app.js
+
+    const eventsToMerge = allAutomatedEvents.filter(event => eventIdsToMerge.includes(event.id));
+    if (eventsToMerge.some(e => e.isMerged)) {
+        showNotification("Cannot merge: one or more selected events are already merged events.", "error");
+        return false;
+    }
+     if (eventsToMerge.length !== 2) { // Should be caught by previous check, but good for safety
+        showNotification("Error: Could not find two distinct events to merge.", "error");
+        return false;
     }
 
-    const event1 = eventsToMerge[0];
-    const event2 = eventsToMerge[1];
-    const mergedStartTime = Math.min(event1.startTime, event2.startTime);
-    const mergedEndTime = Math.max(event1.endTime, event2.endTime);
+    const [event1, event2] = eventsToMerge.sort((a, b) => a.startTime - b.startTime);
 
-    const startIdx = hourlyTimesCache.indexOf(mergedStartTime);
-    const endIdx = hourlyTimesCache.indexOf(mergedEndTime);
-    let mergedPChange = null;
+    // Clear highlight if one of the merged events was highlighted
+    const currentlyHighlightedId = getCurrentlyHighlightedEventId();
+    let highlightNeedsClear = false;
+    if (eventIdsToMerge.includes(currentlyHighlightedId)) {
+        updateChartPlotBand(null);
+        highlightNeedsClear = true; // Signal to app.js to clear its state
+    }
 
-    if (startIdx !== -1 && endIdx !== -1 && startIdx < hourlyPressuresCache.length && endIdx < hourlyPressuresCache.length) {
-        const mergedStartP = hourlyPressuresCache[startIdx];
-        const mergedEndP = hourlyPressuresCache[endIdx];
-        if (mergedStartP !== null && mergedEndP !== null) {
-             mergedPChange = parseFloat((mergedEndP - mergedStartP).toFixed(1));
-        }
+    const mergedStartTime = event1.startTime; // Since sorted
+    const mergedEndTime = event2.endTime;     // Since sorted, event2 is later or same
+    const mergedDurSecs = mergedEndTime - mergedStartTime;
+    const mergedDurHrs = parseFloat((mergedDurSecs / 3600).toFixed(1));
+
+    // Find pressure at start of event1 and end of event2 from cached data
+    let mergedStartP = hourlyPressuresCache[hourlyTimesCache.indexOf(event1.startTime)];
+    let mergedEndP = hourlyPressuresCache[hourlyTimesCache.indexOf(event2.endTime)];
+    let mergedPChange = 'N/A';
+
+    if (typeof mergedStartP === 'number' && typeof mergedEndP === 'number') {
+        mergedPChange = parseFloat((mergedEndP - mergedStartP).toFixed(1));
     } else {
         console.warn("Could not find exact start/end pressures for merged event in hourly data. Pressure change might be N/A.");
     }
 
-    const mergedDurSecs = mergedEndTime - mergedStartTime;
-    const mergedDurHrs = parseFloat((mergedDurSecs / 3600).toFixed(1));
-    const newMergedId = 'merged-' + mergedStartTime + '-' + mergedEndTime;
-
     const mergedEvent = {
-        id: newMergedId, startTime: mergedStartTime, endTime: mergedEndTime,
-        durationHours: mergedDurHrs, pressureChange: mergedPChange,
-        type: "Merged", isMerged: true,
+        id: `merged_${event1.id}_${event2.id}`,
+        startTime: mergedStartTime,
+        endTime: mergedEndTime,
+        durationHours: mergedDurHrs,
+        pressureChange: mergedPChange,
+        type: mergedPChange > 0 ? 'rise' : (mergedPChange < 0 ? 'fall' : 'stable'), // Determine type based on overall change
+        isMerged: true,
         originalEventsData: [JSON.parse(JSON.stringify(event1)), JSON.parse(JSON.stringify(event2))]
     };
+    calculateRateAndSeverity(mergedEvent); // Calculate rate/severity for the new merged event
 
     allAutomatedEvents = allAutomatedEvents.filter(event => !eventIdsToMerge.includes(event.id));
     allAutomatedEvents.push(mergedEvent);
-    allAutomatedEvents.sort((a,b) => a.startTime - b.startTime);
+    allAutomatedEvents.sort((a, b) => a.startTime - b.startTime);
 
-    rerenderTableCallback();
     showNotification("Automated events merged successfully!", "success");
-    return true; // Indicates highlight might need to be cleared
+    return highlightNeedsClear;
 }
 
-export function handleUnmergeAutomatedEvent(getCurrentlyHighlightedEventId, rerenderTableCallback) {
-    const selectedCheckboxes = Array.from(document.querySelectorAll(`#${'pressureEventsTable'} tbody input[type="checkbox"]:checked`));
-     if (selectedCheckboxes.length !== 1) {
+export function handleUnmergeAutomatedEvent(getCurrentlyHighlightedEventId, showNotification, updateChartPlotBand) {
+    const tableElement = document.getElementById(EVENTS_TABLE_BODY_ID);
+    if (!tableElement) return false;
+
+    const selectedCheckboxes = Array.from(tableElement.querySelectorAll('tbody input[type="checkbox"]:checked'));
+    if (selectedCheckboxes.length !== 1) {
         showNotification("Please select exactly one merged event to unmerge.", "error");
         return false;
     }
@@ -150,22 +200,25 @@ export function handleUnmergeAutomatedEvent(getCurrentlyHighlightedEventId, rere
     const eventToUnmerge = allAutomatedEvents.find(event => event.id === eventIdToUnmerge);
 
     if (!eventToUnmerge || !eventToUnmerge.isMerged || !eventToUnmerge.originalEventsData) {
-        showNotification("Selected event is not a merged event or has no original data.", "error");
+        showNotification("Selected event is not a merged event or has no original data to restore.", "error");
         return false;
     }
-    const currentlyHighlightedId = getCurrentlyHighlightedEventId();
-    if (eventIdToUnmerge === currentlyHighlightedId) {
+
+    // Clear highlight if the unmerged event was highlighted
+    let highlightNeedsClear = false;
+    if (getCurrentlyHighlightedEventId() === eventIdToUnmerge) {
         updateChartPlotBand(null);
-         // currentHighlightState will be reset in app.js
+        highlightNeedsClear = true;
     }
 
     allAutomatedEvents = allAutomatedEvents.filter(event => event.id !== eventIdToUnmerge);
     eventToUnmerge.originalEventsData.forEach(originalEvent => {
+        // Original events already have their rate/severity calculated
         allAutomatedEvents.push(originalEvent);
     });
-    allAutomatedEvents.sort((a,b) => a.startTime - b.startTime);
+    allAutomatedEvents.sort((a, b) => a.startTime - b.startTime);
 
-    rerenderTableCallback();
     showNotification("Event unmerged successfully!", "success");
-    return true; // Indicates highlight might need to be cleared
+    return highlightNeedsClear;
 }
+// filename: js/pressureEventManager.js

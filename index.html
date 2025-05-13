@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pressure & Migraine Tracker</title>
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#317EFB"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="PressureTrack">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png"> 
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
     <div id="notification-area"></div>
@@ -33,7 +33,7 @@
                 <button id="mergeAutomatedEventsBtn" disabled>Merge Selected Automated (2)</button>
                 <button id="unmergeAutomatedEventBtn" disabled>Unmerge Selected (1)</button>
             </div>
-            <table id="pressureEventsTable"> 
+            <table id="pressureEventsTable">
                 <thead>
                     <tr>
                         <th>Select</th>
@@ -42,9 +42,12 @@
                         <th>Duration (hrs)</th>
                         <th>Pressure Change (hPa)</th>
                         <th>Type</th>
+                        <th>Rate (hPa/hr)</th> 
+                        <th>Severity</th>      
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                </tbody>
             </table>
         </section>
 
@@ -70,10 +73,10 @@
         <p>Pressure Tracker PWA</p>
     </footer>
 
-    {/* Load libraries first with defer */}
     <script src="https://code.highcharts.com/highcharts.js" defer></script>
     <script src="https://code.highcharts.com/modules/accessibility.js" defer></script>
     <script type="module" src="js/app.js" defer></script>
 
 </body>
 </html>
+<!-- filename: index.html -->

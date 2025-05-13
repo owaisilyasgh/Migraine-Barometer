@@ -1,15 +1,15 @@
 // js/chartManager.js
-// existing imports
-import { CHART_CONTAINER_ID, PLOT_BAND_ID } from './config.js';
+import { CHART_CONTAINER_ID, PLOT_BAND_ID, CURRENT_TIME_PLOT_LINE_ID } from './config.js';
 
-let pressureChartInstance = null; // This global instance is still useful for other functions
-const CURRENT_TIME_PLOT_LINE_ID = 'currentTimePlotLine';
+// Set Highcharts global options to use local time
+Highcharts.setOptions({
+    time: {
+        useUTC: false
+    }
+});
 
-/**
- * Initializes the Highcharts pressure chart.
- * @param {number[]} times - Array of Unix timestamps (seconds).
- * @param {number[]} pressures - Array of pressure values.
- */
+let pressureChartInstance = null;
+
 export function initializeChart(times, pressures) {
     const chartContainer = document.getElementById(CHART_CONTAINER_ID);
     if (!chartContainer) {
@@ -20,7 +20,7 @@ export function initializeChart(times, pressures) {
     if (!times || !pressures || times.length === 0 || pressures.length === 0 || times.length !== pressures.length) {
         console.error("Invalid or empty data provided for chart initialization.");
         if (pressureChartInstance) {
-            pressureChartInstance.destroy(); // Destroy previous instance if any
+            pressureChartInstance.destroy();
             pressureChartInstance = null;
         }
         chartContainer.innerHTML = '<p style="text-align:center;padding-top:20px;">No valid pressure data to display.</p>';
@@ -33,17 +33,20 @@ export function initializeChart(times, pressures) {
         if (pressureChartInstance) {
             pressureChartInstance.destroy();
         }
-        // Assign to the global pressureChartInstance so other functions can use it
         pressureChartInstance = Highcharts.chart(CHART_CONTAINER_ID, {
             chart: {
                 type: 'spline',
                 zoomType: 'x',
                 events: {
                     load: function() {
-                        // 'this' refers to the chart instance here
-                        addCurrentTimePlotLine(this); // Pass the chart instance
+                        addCurrentTimePlotLine(this);
+                        // Minimal log to confirm chart options if needed in future
+                        // console.log(`Chart Loaded. Configured useUTC: ${this.options.time.useUTC}, Global useUTC: ${Highcharts.getOptions().time.useUTC}`);
                     }
                 }
+            },
+            time: { // Explicitly set for this chart instance as well
+                useUTC: false
             },
             title: {
                 text: null
@@ -84,52 +87,38 @@ export function initializeChart(times, pressures) {
                 enabled: false
             }
         });
-        return pressureChartInstance; // Return the instance
+        return pressureChartInstance;
     } catch (error) {
         console.error("Error initializing Highcharts:", error);
         if (chartContainer) {
             chartContainer.innerHTML = '<p style="text-align:center;color:red;padding-top:20px;">Error initializing chart. See console for details.</p>';
         }
-        pressureChartInstance = null; // Ensure it's null on error
+        pressureChartInstance = null;
         return null;
     }
 }
 
-/**
- * Adds a plot line to indicate the current time on the chart.
- * This function is now intended to be called with the chart instance, typically from chart.events.load.
- * @param {object} chartInstance - The Highcharts chart instance.
- */
-export function addCurrentTimePlotLine(chartInstance) { // Accepts chartInstance as argument
-    console.log("addCurrentTimePlotLine called via chart.load event"); // DIAGNOSTIC LOG
-
+export function addCurrentTimePlotLine(chartInstance) {
     if (!chartInstance || !chartInstance.xAxis || !chartInstance.xAxis[0]) {
-        console.warn("Chart instance or xAxis not ready for current time plot line (called from chart.load).");
+        // console.warn("Chart instance or xAxis not ready for current time plot line."); // Keep if still useful
         return;
     }
-
-    // Remove existing current time plot line if it exists
     chartInstance.xAxis[0].removePlotLine(CURRENT_TIME_PLOT_LINE_ID);
 
-    const now = new Date().getTime(); // Current time in milliseconds
-    console.log("Current time (ms) for plot line:", now, new Date(now).toLocaleString()); // DIAGNOSTIC LOG
-
+    const nowMs = new Date().getTime();
     const xAxisExtremes = chartInstance.xAxis[0].getExtremes();
-    console.log("Chart X-axis min (ms):", xAxisExtremes.min, new Date(xAxisExtremes.min).toLocaleString()); // DIAGNOSTIC LOG
-    console.log("Chart X-axis max (ms):", xAxisExtremes.max, new Date(xAxisExtremes.max).toLocaleString()); // DIAGNOSTIC LOG
-    console.log("Chart X-axis dataMin (ms):", xAxisExtremes.dataMin, new Date(xAxisExtremes.dataMin).toLocaleString()); // DIAGNOSTIC LOG
-    console.log("Chart X-axis dataMax (ms):", xAxisExtremes.dataMax, new Date(xAxisExtremes.dataMax).toLocaleString()); // DIAGNOSTIC LOG
 
-    if (now >= xAxisExtremes.dataMin && now <= xAxisExtremes.dataMax) {
+    if (nowMs >= xAxisExtremes.dataMin && nowMs <= xAxisExtremes.dataMax) {
         chartInstance.xAxis[0].addPlotLine({
-            value: now,
+            value: nowMs,
             color: 'red',
             width: 2,
             id: CURRENT_TIME_PLOT_LINE_ID,
             zIndex: 5,
             label: {
                 text: 'Now',
-                y: 1,         // Adjusted: Lifts the label a bit more above the line
+                align: 'center',
+                y: -5,
                 style: {
                     color: 'red',
                     fontWeight: 'bold'
@@ -137,26 +126,16 @@ export function addCurrentTimePlotLine(chartInstance) { // Accepts chartInstance
             },
             dashStyle: 'ShortDash'
         });
-        console.log("Plot line 'Now' should have been added."); // DIAGNOSTIC LOG
     } else {
-        console.log("Current time is outside the chart's data range. 'Now' line not added."); // DIAGNOSTIC LOG
+        // console.log("Current time is outside the chart's data range. 'Now' line not added."); // Keep if useful
     }
 }
 
-/**
- * Updates or removes a plot band on the chart to highlight an event.
- * Relies on the global pressureChartInstance.
- * @param {object|null} eventData - Object with startTime and endTime (Unix seconds), or null to remove.
- */
 export function updateChartPlotBand(eventData) {
     if (!pressureChartInstance || !pressureChartInstance.xAxis || !pressureChartInstance.xAxis[0]) {
-        // If called before chart is ready, this is expected.
-        // console.warn("Global Highcharts instance or xAxis not ready for plot band.");
         return;
     }
-
     pressureChartInstance.xAxis[0].removePlotBand(PLOT_BAND_ID);
-
     if (eventData && typeof eventData.startTime === 'number' && typeof eventData.endTime === 'number') {
         pressureChartInstance.xAxis[0].addPlotBand({
             from: eventData.startTime * 1000,
@@ -168,16 +147,12 @@ export function updateChartPlotBand(eventData) {
     }
 }
 
-/**
- * Destroys the chart instance if it exists.
- * Relies on the global pressureChartInstance.
- */
 export function destroyChart() {
     if (pressureChartInstance) {
         try {
             pressureChartInstance.destroy();
             pressureChartInstance = null;
-            console.log("Chart destroyed.");
+            // console.log("Chart destroyed."); // Keep if useful
         } catch (error) {
             console.error("Error destroying chart:", error);
         }
@@ -187,3 +162,4 @@ export function destroyChart() {
         chartContainer.innerHTML = '';
     }
 }
+// filename: js/chartManager.js

@@ -1,24 +1,16 @@
 // js/uiRenderer.js
-import { formatUnixTimestamp, showNotification as utilShowNotification } from './utils.js'; // Renamed to avoid conflict
+import { formatUnixTimestamp, showNotification as utilShowNotification } from './utils.js';
 import { EVENTS_TABLE_BODY_ID, MIGRAINE_LIST_ID, MERGE_EVENTS_BTN_ID, UNMERGE_EVENT_BTN_ID } from './config.js';
-import { getAllAutomatedEvents } from './pressureEventManager.js'; // To get events for button state
+import { getAllAutomatedEvents } from './pressureEventManager.js';
 
-// Forward showNotification
-export const showNotification = utilShowNotification;
+export const showNotification = utilShowNotification; // Forward showNotification
 
-let currentHighlightHandler = null; // To be set by app.js
+let currentHighlightHandler = null;
 
 export function setCurrentHighlightHandler(handler) {
     currentHighlightHandler = handler;
 }
 
-/**
- * Renders the table of automated pressure events.
- * @param {object[]} eventsToRender - The events to display.
- * @param {string|null} currentlyHighlightedEventId - ID of the event to highlight in the table.
- * @param {function} onRowClickHandler - Function to call when a row is clicked.
- * @param {function} onCheckboxChangeHandler - Function to call when a checkbox state changes.
- */
 export function renderAutomatedEventsTable(eventsToRender, currentlyHighlightedEventId, onRowClickHandler, onCheckboxChangeHandler) {
     const tableElement = document.getElementById(EVENTS_TABLE_BODY_ID);
     if (!tableElement) {
@@ -30,25 +22,26 @@ export function renderAutomatedEventsTable(eventsToRender, currentlyHighlightedE
         console.error("Automated pressure events table body not found.");
         return;
     }
-    tableBody.innerHTML = '';
+    tableBody.innerHTML = ''; // Clear existing rows
 
-    if (eventsToRender.length === 0) {
+    if (!eventsToRender || eventsToRender.length === 0) {
         const row = tableBody.insertRow();
         const cell = row.insertCell();
-        cell.colSpan = 6;
-        cell.textContent = 'No significant pressure events detected or loaded.';
-        updateAutomatedEventActionButtonsState(onCheckboxChangeHandler); // Pass handler
+        // Adjusted colspan to account for new columns (Select, Start, End, Duration, Change, Type, Rate, Severity = 8 columns)
+        cell.colSpan = 8;
+        cell.textContent = 'No automated pressure events detected or data not loaded.';
+        cell.style.textAlign = 'center';
+        updateAutomatedEventActionButtonsState(onCheckboxChangeHandler); // Still update buttons
         return;
     }
 
     const nowUnix = Math.floor(Date.now() / 1000);
     eventsToRender.forEach(event => {
         const row = tableBody.insertRow();
-        row.dataset.eventId = event.id;
-        row.style.cursor = 'pointer';
+        row.dataset.eventId = event.id; // For easier selection if needed elsewhere
 
         row.addEventListener('click', (e) => {
-            if (e.target.type === 'checkbox' || (e.target.parentNode && e.target.parentNode.firstChild && e.target.parentNode.firstChild.type === 'checkbox')) {
+            if (e.target.type === 'checkbox') { // Don't trigger row click if checkbox itself is clicked
                 return;
             }
             if (onRowClickHandler) onRowClickHandler(event.id, row);
@@ -58,7 +51,7 @@ export function renderAutomatedEventsTable(eventsToRender, currentlyHighlightedE
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.dataset.eventId = event.id;
-        checkbox.addEventListener('change', () => onCheckboxChangeHandler()); // Call the passed handler
+        checkbox.addEventListener('change', () => onCheckboxChangeHandler());
         cellSelect.appendChild(checkbox);
 
         row.insertCell().textContent = formatUnixTimestamp(event.startTime);
@@ -67,57 +60,64 @@ export function renderAutomatedEventsTable(eventsToRender, currentlyHighlightedE
         row.insertCell().textContent = typeof event.pressureChange === 'number' ? event.pressureChange.toFixed(1) : 'N/A';
 
         let typeDisplay = event.type;
-        if (event.isMerged) { typeDisplay += " (M)"; }
+        if (event.isMerged) {
+            typeDisplay += ' (Merged)';
+        }
         row.insertCell().textContent = typeDisplay;
 
-        if (nowUnix >= event.startTime && nowUnix <= event.endTime) { row.classList.add('current-event'); }
+        // New cells for Rate and Severity
+        const rateCell = row.insertCell();
+        rateCell.textContent = (typeof event.rateOfChange === 'number') ? event.rateOfChange.toFixed(2) : 'N/A';
+        
+        const severityCell = row.insertCell();
+        severityCell.textContent = event.severity || 'N/A';
+        severityCell.classList.add(`severity-${(event.severity || 'na').toLowerCase()}`); // For potential styling
+
+        if (nowUnix >= event.startTime && nowUnix <= event.endTime) {
+            row.classList.add('current-event');
+        }
         if (event.id === currentlyHighlightedEventId) {
             row.classList.add('highlighted-automated-event-row');
         }
     });
-    updateAutomatedEventActionButtonsState(onCheckboxChangeHandler); // Pass handler
+    updateAutomatedEventActionButtonsState(onCheckboxChangeHandler);
 }
 
 
-/**
- * Updates the enabled/disabled state of merge/unmerge buttons.
- * This function will be called by app.js after checkbox changes.
- */
 export function updateAutomatedEventActionButtonsState() {
-    const events = getAllAutomatedEvents(); // Get current events state
     const tableElement = document.getElementById(EVENTS_TABLE_BODY_ID);
     if (!tableElement) return;
 
+    const events = getAllAutomatedEvents();
     const checkboxes = Array.from(tableElement.querySelectorAll('tbody input[type="checkbox"]:checked'));
     const mergeBtn = document.getElementById(MERGE_EVENTS_BTN_ID);
     const unmergeBtn = document.getElementById(UNMERGE_EVENT_BTN_ID);
 
     if (!mergeBtn || !unmergeBtn) return;
 
-    let selectedNonMergedEventsCount = 0;
-    let countSelectedMerged = 0;
+    let canMerge = false;
+    let canUnmerge = false;
 
-    checkboxes.forEach(cb => {
-        const eventId = cb.dataset.eventId;
-        const event = events.find(e => e.id === eventId);
-        if (event) {
-            if (event.isMerged) {
-                countSelectedMerged++;
-            } else {
-                selectedNonMergedEventsCount++;
-            }
+    if (checkboxes.length === 2) {
+        const selectedEventIds = checkboxes.map(cb => cb.dataset.eventId);
+        const selectedEvents = events.filter(e => selectedEventIds.includes(e.id));
+        if (selectedEvents.length === 2 && !selectedEvents.some(e => e.isMerged)) {
+            canMerge = true;
         }
-    });
+    }
 
-    mergeBtn.disabled = !(selectedNonMergedEventsCount === 2 && countSelectedMerged === 0 && checkboxes.length === 2);
-    unmergeBtn.disabled = !(countSelectedMerged === 1 && selectedNonMergedEventsCount === 0 && checkboxes.length === 1);
+    if (checkboxes.length === 1) {
+        const selectedEventId = checkboxes[0].dataset.eventId;
+        const selectedEvent = events.find(e => e.id === selectedEventId);
+        if (selectedEvent && selectedEvent.isMerged) {
+            canUnmerge = true;
+        }
+    }
+
+    mergeBtn.disabled = !canMerge;
+    unmergeBtn.disabled = !canUnmerge;
 }
 
-
-/**
- * Loads and displays migraine events from localStorage.
- * @param {object} dbInstance - The database utility object.
- */
 export function loadAndDisplayMigraines(dbInstance) {
     const migraines = dbInstance.loadData('migraines') || [];
     const listElement = document.getElementById(MIGRAINE_LIST_ID);
@@ -125,17 +125,18 @@ export function loadAndDisplayMigraines(dbInstance) {
         console.error("Migraine list element not found:", MIGRAINE_LIST_ID);
         return;
     }
+    listElement.innerHTML = ''; // Clear existing list
 
-    listElement.innerHTML = '';
+    migraines.sort((a, b) => b.startTime - a.startTime); // Show newest first
     if (migraines.length === 0) {
         listElement.innerHTML = '<li>No migraines logged yet.</li>';
         return;
     }
 
-    migraines.sort((a,b) => b.startTime - a.startTime); // Show newest first
     migraines.forEach(migraine => {
         const listItem = document.createElement('li');
         listItem.textContent = `From: ${formatUnixTimestamp(migraine.startTime)} To: ${formatUnixTimestamp(migraine.endTime)}`;
         listElement.appendChild(listItem);
     });
 }
+// filename: js/uiRenderer.js
