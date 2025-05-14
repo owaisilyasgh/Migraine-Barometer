@@ -1,50 +1,65 @@
 // js/utils.js
+import { NOTIFICATION_AREA_ID } from './config.js';
 
 /**
- * Formats a Unix timestamp (seconds) into a human-readable string.
+ * Formats a Unix timestamp (seconds) into "Month Day, Hour AM/PM" string.
+ * e.g., "May 12, 12 AM" or "May 12, 3 PM"
  * @param {number} unixTimestamp - The Unix timestamp in seconds.
- * @param {string} formatType - 'datetime' for full locale string, or any other for locale string.
  * @returns {string} The formatted date string.
  */
-export function formatUnixTimestamp(unixTimestamp, formatType = 'datetime') {
+export function formatUnixTimestamp(unixTimestamp) {
     const date = new Date(unixTimestamp * 1000);
-    if (formatType === 'datetime') {
-        return date.toLocaleString();
-    }
-    // Highcharts handles its own axis formatting, this is for other UI parts.
-    return date.toLocaleString();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const day = date.getDate();
+    let hours = date.getHours();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+
+    return `${month} ${day}, ${hours} ${ampm}`;
 }
 
-/**
- * Shows a notification message to the user.
- * @param {string} message - The message to display.
- * @param {string} [type='info'] - The type of notification ('info', 'success', 'error').
- * @param {number} [duration=3000] - How long to display the notification in milliseconds.
- */
 export function showNotification(message, type = 'info', duration = 3000) {
-    const notificationArea = document.getElementById('notification-area'); // Using ID from config might be an option later
+    const notificationArea = document.getElementById(NOTIFICATION_AREA_ID);
     if (!notificationArea) {
         console.warn('Notification area not found in DOM.');
         return;
     }
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
+    notification.classList.add('m3-notification', type);
     notification.textContent = message;
-
     notificationArea.appendChild(notification);
-
-    // Trigger reflow to enable animation
     requestAnimationFrame(() => {
         notification.classList.add('show');
     });
-
     setTimeout(() => {
         notification.classList.remove('show');
-        // Remove the element after the animation completes
         setTimeout(() => {
             if (notification.parentNode === notificationArea) {
                 notificationArea.removeChild(notification);
             }
-        }, 500); // Matches CSS transition duration
+        }, 300);
     }, duration);
 }
+
+export function createRipple(event) {
+    const button = event.currentTarget;
+    if (getComputedStyle(button).position === 'static') {
+        button.style.position = 'relative';
+    }
+    button.style.overflow = 'hidden';
+    const ripple = document.createElement('span');
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    ripple.classList.add('m3-ripple');
+    const existingRipple = button.querySelector('.m3-ripple');
+    if (existingRipple) existingRipple.remove();
+    button.appendChild(ripple);
+}
+// filename: js/utils.js

@@ -4,7 +4,7 @@
 export const USE_LIVE_DATA = true;
 
 // API Configuration
-export const API_URL_TEMPLATE = 'https://api.open-meteo.com/v1/forecast?latitude={LAT}&longitude={LON}&hourly=surface_pressure&current=surface_pressure&timezone=auto&past_days=1&timeformat=unixtime';
+export const API_URL_TEMPLATE = 'https://api.open-meteo.com/v1/forecast?latitude={LAT}&longitude={LON}&hourly=surface_pressure&currentt=surface_pressure&timezone=auto&past_days=1&forecast_days=3&timeformat=unixtime';
 export const DEFAULT_LATITUDE = 43.8632;
 export const DEFAULT_LONGITUDE = -79.2297;
 
@@ -24,8 +24,10 @@ export const THEMES = [
 
 // Cached Data Configuration
 export const CACHED_PRESSURE_DATA_KEY = 'pressureTracker_cachedPressureData';
-// Optional: Define cache expiry if needed later, e.g., 1 hour
-// export const CACHE_EXPIRY_DURATION_MS = 1 * 60 * 60 * 1000;
+
+// Migraine Logging Configuration
+export const EVENT_MIGRAINE_LOGS_KEY = 'pressureTracker_eventMigraineLogs';
+export const MIGRAINE_SEVERITIES = ['Mild', 'Moderate', 'Severe'];
 
 
 // Configuration for automated peak/valley detection
@@ -35,10 +37,11 @@ export const MIN_DURATION_HOURS = 2;
 // DOM Element IDs
 export const CHART_CONTAINER_ID = 'pressureChart';
 export const EVENTS_TABLE_BODY_ID = 'pressureEventsTable';
-export const MIGRAINE_FORM_ID = 'migraineForm';
-export const MIGRAINE_START_TIME_ID = 'migraineStartTime';
-export const MIGRAINE_END_TIME_ID = 'migraineEndTime';
-export const MIGRAINE_LIST_ID = 'migraineList';
+// Removed old migraine form/list IDs
+// export const MIGRAINE_FORM_ID = 'migraineForm';
+// export const MIGRAINE_START_TIME_ID = 'migraineStartTime';
+// export const MIGRAINE_END_TIME_ID = 'migraineEndTime';
+// export const MIGRAINE_LIST_ID = 'migraineList';
 export const NOTIFICATION_AREA_ID = 'notification-area';
 export const MERGE_EVENTS_BTN_ID = 'mergeAutomatedEventsBtn';
 export const UNMERGE_EVENT_BTN_ID = 'unmergeAutomatedEventBtn';

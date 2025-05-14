@@ -6,69 +6,65 @@
     <title>Pressure & Migraine Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#317EFB"/>
+    <meta name="theme-color" content="#6750A4"/>
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PressureTrack">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div id="notification-area"></div>
+<body class="theme-mode-light m3-body">
 
-    <header>
-        <h1>Pressure & Migraine Tracker</h1>
+    <div id="notification-area" class="m3-snackbar-container"></div>
+
+    <header class="m3-top-app-bar">
+        <h1 class="m3-top-app-bar__title">Pressure & Migraine Tracker</h1>
     </header>
 
-    <main>
-        <section id="pressure-chart-section">
-            <h2>Surface Pressure Over Time</h2>
-            <div class="chart-container large-chart-container">
-                <div id="pressureChart"></div>
+    <main class="m3-main-content">
+        <section id="pressure-chart-section" class="m3-card">
+            <h2 class="m3-card__title">Surface Pressure Over Time</h2>
+            <div class="m3-card__content">
+                <div class="chart-container large-chart-container">
+                    <div id="pressureChart"></div>
+                </div>
             </div>
         </section>
 
-        <section id="pressure-events-section">
-            <h2>Detected Pressure Events (Automated)</h2>
-            <div class="automated-events-controls">
-                <button id="mergeAutomatedEventsBtn" disabled>Merge Selected Automated (2)</button>
-                <button id="unmergeAutomatedEventBtn" disabled>Unmerge Selected (1)</button>
+        <section id="pressure-events-section" class="m3-card">
+            <h2 class="m3-card__title">Detected Pressure Events (Automated)</h2>
+            <div class="m3-card__content">
+                <div class="automated-events-controls m3-button-group">
+                    <button id="mergeAutomatedEventsBtn" class="m3-button m3-button-outlined" disabled>Merge Selected (2)</button>
+                    <button id="unmergeAutomatedEventBtn" class="m3-button m3-button-outlined" disabled>Unmerge Selected (1)</button>
+                </div>
+                <div class="m3-table-container">
+                    <table id="pressureEventsTable" class="m3-table">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Duration (hrs)</th>
+                                <th>(hPa)±</th>
+                                <th>Type</th>
+                                <th>Rate (hPa/hr)</th>
+                                <th>Severity</th>
+                                <th>Migraine Log</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
-            <table id="pressureEventsTable">
-                <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Duration (hrs)</th>
-                        <th>Pressure Change (hPa)</th>
-                        <th>Type</th>
-                        <th>Rate (hPa/hr)</th>
-                        <th>Severity</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
         </section>
 
-        <section id="migraine-log-section">
-            <h2>Log Migraine Event</h2>
-            <form id="migraineForm">
-                <div>
-                    <label for="migraineStartTime">Start Time:</label>
-                    <input type="datetime-local" id="migraineStartTime" required>
-                </div>
-                <div>
-                    <label for="migraineEndTime">End Time:</label>
-                    <input type="datetime-local" id="migraineEndTime" required>
-                </div>
-                <button type="submit">Log Migraine</button>
-            </form>
-            <h3>Logged Migraines</h3>
-            <ul id="migraineList"></ul>
-        </section>
+
     </main>
 
-    <footer>
+    <footer class="m3-footer">
         <p>Pressure Tracker PWA</p>
     </footer>
 

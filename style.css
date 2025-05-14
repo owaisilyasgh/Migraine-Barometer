@@ -1,179 +1,531 @@
-/* style.css - Add these styles */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    line-height: 1.6;
+/* style.css */
+/* M3 Color Palette (Light Theme - Primary Purple) */
+:root {
+    /* Primary */
+    --m3-primary: #6750A4;
+    --m3-on-primary: #FFFFFF;
+    --m3-primary-container: #EADDFF;
+    --m3-on-primary-container: #21005D;
+    --m3-primary-rgb: 103, 80, 164; /* For RGBA usage */
+
+    /* Secondary */
+    --m3-secondary: #625B71;
+    --m3-on-secondary: #FFFFFF;
+    --m3-secondary-container: #E8DEF8;
+    --m3-on-secondary-container: #1D192B;
+
+    /* Tertiary */
+    --m3-tertiary: #7D5260;
+    --m3-on-tertiary: #FFFFFF;
+    --m3-tertiary-container: #FFD8E4;
+    --m3-on-tertiary-container: #31111D;
+
+    /* Error */
+    --m3-error: #B3261E;
+    --m3-on-error: #FFFFFF;
+    --m3-error-container: #F9DEDC;
+    --m3-on-error-container: #410E0B;
+
+    /* Surface */
+    --m3-surface-dim: #DED8E1;
+    --m3-surface: #FFFBFE;
+    --m3-surface-bright: #FFFBFE;
+    --m3-surface-container-lowest: #FFFFFF;
+    --m3-surface-container-low: #F7F2FA;
+    --m3-surface-container: #F3EDF7;
+    --m3-surface-container-high: #ECE6F0;
+    --m3-surface-container-highest: #E6E0E9;
+    --m3-on-surface: #1C1B1F;
+    --m3-on-surface-rgb: 28, 27, 31; /* For RGBA usage */
+    --m3-on-surface-variant: #49454F;
+    --m3-on-surface-variant-rgb: 73, 69, 79; /* For RGBA usage with select arrow */
+
+
+    /* Inverse Surface (for snackbars, etc.) */
+    --m3-inverse-surface: #313033;
+    --m3-inverse-on-surface: #F4EFF4;
+    --m3-inverse-primary: #D0BCFF;
+
+
+    /* Outline */
+    --m3-outline: #79747E;
+    --m3-outline-variant: #C4C6C9;
+
+
+    /* Scrim */
+    --m3-scrim: #000000;
+
+    /* Shadow */
+    --m3-shadow: #000000;
+
+    /* Typography */
+    --m3-font-family-brand: 'Roboto', sans-serif;
+    --m3-font-family-plain: 'Roboto', sans-serif;
+
+    /* M3 Type Scale reference (use these for consistency) */
+    /* Display */
+    --m3-display-large-font-size: 57px;
+    --m3-display-large-line-height: 64px;
+    --m3-display-large-font-weight: 400;
+    --m3-display-medium-font-size: 45px;
+    --m3-display-medium-line-height: 52px;
+    --m3-display-medium-font-weight: 400;
+    --m3-display-small-font-size: 36px;
+    --m3-display-small-line-height: 44px;
+    --m3-display-small-font-weight: 400;
+    /* Headline */
+    --m3-headline-large-font-size: 32px;
+    --m3-headline-large-line-height: 40px;
+    --m3-headline-large-font-weight: 400;
+    --m3-headline-medium-font-size: 28px;
+    --m3-headline-medium-line-height: 36px;
+    --m3-headline-medium-font-weight: 400;
+    --m3-headline-small-font-size: 24px;
+    --m3-headline-small-line-height: 32px;
+    --m3-headline-small-font-weight: 400;
+    /* Title */
+    --m3-title-large-font-size: 22px;
+    --m3-title-large-line-height: 28px;
+    --m3-title-large-font-weight: 500; /* Note: M3 uses 400 for Title Large, but 500 is common for emphasis */
+    --m3-title-medium-font-size: 16px;
+    --m3-title-medium-line-height: 24px;
+    --m3-title-medium-font-weight: 500;
+    --m3-title-medium-letter-spacing: 0.15px;
+    --m3-title-small-font-size: 14px;
+    --m3-title-small-line-height: 20px;
+    --m3-title-small-font-weight: 500;
+    --m3-title-small-letter-spacing: 0.1px;
+    /* Label */
+    --m3-label-large-font-size: 14px;
+    --m3-label-large-line-height: 20px;
+    --m3-label-large-font-weight: 500;
+    --m3-label-large-letter-spacing: 0.1px;
+    --m3-label-medium-font-size: 12px;
+    --m3-label-medium-line-height: 16px;
+    --m3-label-medium-font-weight: 500;
+    --m3-label-medium-letter-spacing: 0.5px;
+    --m3-label-small-font-size: 11px;
+    --m3-label-small-line-height: 16px;
+    --m3-label-small-font-weight: 500;
+    --m3-label-small-letter-spacing: 0.5px;
+    /* Body */
+    --m3-body-large-font-size: 16px;
+    --m3-body-large-line-height: 24px;
+    --m3-body-large-font-weight: 400;
+    --m3-body-large-letter-spacing: 0.5px; /* Or 0.15px if less spacing is desired */
+    --m3-body-medium-font-size: 14px;
+    --m3-body-medium-line-height: 20px;
+    --m3-body-medium-font-weight: 400;
+    --m3-body-medium-letter-spacing: 0.25px;
+    --m3-body-small-font-size: 12px;
+    --m3-body-small-line-height: 16px;
+    --m3-body-small-font-weight: 400;
+    --m3-body-small-letter-spacing: 0.4px;
+
+
+    /* Shape */
+    --m3-shape-corner-none: 0px;
+    --m3-shape-corner-xs: 4px;
+    --m3-shape-corner-sm: 8px;
+    --m3-shape-corner-md: 12px;
+    --m3-shape-corner-lg: 16px;
+    --m3-shape-corner-xl: 28px;
+    --m3-shape-corner-full: 50%; /* Or large value like 999px for pills */
+
+    /* Elevation - using simplified box-shadows for web */
+    --m3-elevation-0: none;
+    --m3-elevation-1: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+    --m3-elevation-2: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+    --m3-elevation-3: 0px 1px 3px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+    --m3-elevation-4: 0px 2px 3px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+    --m3-elevation-5: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Global M3 Body Styles */
+.m3-body {
     margin: 0;
-    padding: 0;
-    background-color: #f4f7f6;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    font-family: var(--m3-font-family-plain);
+    background-color: var(--m3-surface);
+    color: var(--m3-on-surface);
+    font-size: var(--m3-body-large-font-size);
+    line-height: var(--m3-body-large-line-height);
+    letter-spacing: var(--m3-body-large-letter-spacing);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-#notification-area {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    width: 300px;
-}
-
-.notification {
-    background-color: #333;
-    color: white;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    font-size: 0.9em;
-}
-.notification.show { opacity: 1; transform: translateY(0); }
-.notification.success { background-color: #28a745; }
-.notification.error { background-color: #dc3545; }
-.notification.info { background-color: #17a2b8; }
-.notification.warning { background-color: #ffc107; color: #333; }
-
-
-header {
-    background-color: #007bff;
-    color: white;
-    padding: 1em;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-header h1 { margin: 0; font-size: 1.8em; }
-
-main {
-    flex-grow: 1;
-    padding: 1em;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-section {
-    background-color: white;
-    padding: 1.5em;
-    margin-bottom: 1.5em;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-}
-
-/* New styles for settings section */
-.settings-section div {
+/* Top App Bar */
+.m3-top-app-bar {
+    background-color: var(--m3-surface-container-low); /* Or var(--m3-primary) for colored bar */
+    color: var(--m3-on-surface-variant); /* Or var(--m3-on-primary) if colored */
+    padding: 8px 16px; /* M3 Compact Top App Bar often uses 64px height, centered title */
+    height: 64px;
     display: flex;
     align-items: center;
-    gap: 10px; /* Space between label and select */
-}
-.settings-section label {
-    font-weight: bold;
-    color: #555;
-}
-#chartThemeSelector {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: white;
-    font-size: 0.9em;
-    min-width: 200px; /* Ensure dropdown is not too small */
+    box-shadow: var(--m3-elevation-0); /* Typically no shadow if content scrolls under */
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-
-h2 {
-    color: #007bff;
-    margin-top: 0;
-    margin-bottom: 0.75em;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 0.5em;
+.m3-top-app-bar__title {
+    font-size: var(--m3-title-large-font-size);
+    font-weight: var(--m3-title-large-font-weight);
+    line-height: var(--m3-title-large-line-height);
+    margin: 0;
 }
-h3 { font-size: 1.2em; color: #555; margin-top: 1.5em; margin-bottom: 0.5em; }
 
-.chart-container { position: relative; height: 350px; width: 100%; margin-bottom: 1em; }
-.large-chart-container { height: 450px; } /* Can be adjusted */
-#pressureChart { display: block; box-sizing: border-box; height: 100% !important; width: 100% !important; }
+/* Main Content Area */
+.m3-main-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px; /* Spacing between sections/cards */
+}
 
-#migraineList li { font-weight: normal; color: #333; }
+/* Card Styles */
+.m3-card {
+    background-color: var(--m3-surface-container-low);
+    border-radius: var(--m3-shape-corner-md); /* 12px */
+    box-shadow: var(--m3-elevation-1);
+    padding: 16px;
+    overflow: hidden; /* If content might overflow rounded corners */
+}
 
-.automated-events-controls { margin-bottom: 1em; }
-.automated-events-controls button { margin-right: 10px; }
+.m3-card__title {
+    font-size: var(--m3-title-medium-font-size);
+    font-weight: var(--m3-title-medium-font-weight);
+    line-height: var(--m3-title-medium-line-height);
+    letter-spacing: var(--m3-title-medium-letter-spacing);
+    color: var(--m3-on-surface-variant);
+    margin-top: 0; /* Remove default h2 margin if needed */
+    margin-bottom: 16px; /* Space below title */
+}
 
-table { width: 100%; border-collapse: collapse; margin-top: 1em; font-size: 0.9em; }
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
+/* Button Styles */
+.m3-button {
+    font-family: var(--m3-font-family-plain);
+    font-size: var(--m3-label-large-font-size);
+    font-weight: var(--m3-label-large-font-weight);
+    letter-spacing: var(--m3-label-large-letter-spacing);
+    line-height: var(--m3-label-large-line-height);
+    padding: 10px 24px; /* M3 Buttons Height 40dp */
+    border-radius: var(--m3-shape-corner-full); /* Pill shape */
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex; /* For icon alignment if any */
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    box-sizing: border-box;
+    position: relative; /* For ripple */
+    overflow: hidden; /* For ripple */
+    transition: background-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* General cursor for all disabled buttons */
+.m3-button:disabled, .m3-button[disabled] {
+    cursor: default !important;
+    box-shadow: none !important; /* Remove any active/hover shadows */
+}
+
+/* Filled Button */
+.m3-button-filled {
+    background-color: var(--m3-primary);
+    color: var(--m3-on-primary);
+}
+.m3-button-filled:not(:disabled):hover {
+    background-color: color-mix(in srgb, var(--m3-primary) 92%, var(--m3-on-primary) 8%); /* M3 Hover state layer */
+    box-shadow: var(--m3-elevation-1);
+}
+.m3-button-filled:disabled,
+.m3-button-filled[disabled] {
+    background-color: rgba(var(--m3-on-surface-rgb), 0.12);
+    color: rgba(var(--m3-on-surface-rgb), 0.38);
+}
+.m3-button-filled:disabled:hover,
+.m3-button-filled[disabled]:hover {
+    background-color: rgba(var(--m3-on-surface-rgb), 0.12); /* No change on hover when disabled */
+}
+
+/* Outlined Button */
+.m3-button-outlined {
+    background-color: transparent;
+    color: var(--m3-primary);
+    border: 1px solid var(--m3-outline);
+    padding: 10px 23px; /* Adjust padding because of border */
+}
+.m3-button-outlined:not(:disabled):hover {
+    background-color: rgba(var(--m3-primary-rgb), 0.08); /* M3 Hover state layer for outlined */
+}
+.m3-button-outlined:disabled,
+.m3-button-outlined[disabled] {
+    background-color: transparent;
+    border: 1px solid rgba(var(--m3-on-surface-rgb), 0.12);
+    color: rgba(var(--m3-on-surface-rgb), 0.38);
+}
+.m3-button-outlined:disabled:hover,
+.m3-button-outlined[disabled]:hover {
+    background-color: transparent; /* No change on hover when disabled */
+    border-color: rgba(var(--m3-on-surface-rgb), 0.12);
+}
+
+/* Text Button */
+.m3-button-text {
+    background-color: transparent;
+    color: var(--m3-primary);
+    padding: 10px 12px; /* Text buttons have less horizontal padding */
+}
+.m3-button-text:not(:disabled):hover {
+    background-color: rgba(var(--m3-primary-rgb), 0.08); /* M3 Hover state layer for text */
+}
+.m3-button-text:disabled,
+.m3-button-text[disabled] {
+    background-color: transparent;
+    color: rgba(var(--m3-on-surface-rgb), 0.38);
+}
+.m3-button-text:disabled:hover,
+.m3-button-text[disabled]:hover {
+    background-color: transparent; /* No change on hover when disabled */
+}
+
+
+.m3-button-group {
+    display: flex;
+    gap: 8px; /* Spacing between buttons in a group */
+    margin-bottom: 16px;
+}
+
+/* Ripple Effect */
+.m3-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: currentColor; /* Use button's text color for ripple */
+    opacity: 0.2; /* Ripple opacity */
+    transform: scale(0);
+    animation: m3-ripple-animation 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes m3-ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Table Styles */
+.m3-table-container {
+    overflow-x: auto; /* Allow horizontal scrolling for tables on small screens */
+    width: 100%;
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: var(--m3-shape-corner-sm);
+}
+
+.m3-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--m3-surface-container-lowest); /* Or --m3-surface */
+    font-size: var(--m3-body-medium-font-size);
+}
+
+.m3-table th, .m3-table td {
+    padding: 12px 16px; /* M3 Table Cell Padding */
     text-align: left;
+    border-bottom: 1px solid var(--m3-outline-variant);
+}
+
+.m3-table th {
+    font-weight: var(--m3-label-large-font-weight); /* M3 uses Body Medium or Label Large for headers */
+    color: var(--m3-on-surface-variant);
+    background-color: var(--m3-surface-container-low); /* Slight distinction for header */
+    border-bottom: 1px solid var(--m3-outline); /* Stronger line under header */
+}
+.m3-table td {
+    color: var(--m3-on-surface);
+}
+
+.m3-table tbody tr:last-child td {
+    border-bottom: none; /* Remove border from last row */
+}
+
+.m3-table tbody tr:hover td { /* M3 Row Hover State */
+    background-color: rgba(var(--m3-on-surface-rgb), 0.04); /* On Surface with 4% opacity */
+}
+
+.m3-table td input[type="checkbox"] {
+    vertical-align: middle;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--m3-primary); /* Style checkbox color */
+    cursor: pointer;
+}
+
+.m3-table .severity-low { color: var(--m3-primary); }
+.m3-table .severity-medium { color: #FF8C00; } /* Consider using a semantic M3 color if available */
+.m3-table .severity-high { color: var(--m3-error); }
+
+/* Migraine Log Elements in Table */
+.migraine-log-cell {
+    white-space: nowrap;
     vertical-align: middle;
 }
-th { background-color: #f9f9f9; color: #555; font-weight: bold; }
-tr.current-event td { background-color: #fff8e1; font-weight: bold; }
-td input[type="checkbox"] { transform: scale(1.2); margin-right: 5px;}
 
-#pressureEventsTable tbody tr.highlighted-automated-event-row td {
-    background-color: rgba(0, 123, 255, 0.15) !important; /* Ensure it overrides other hover/current styles */
-}
-#pressureEventsTable tbody tr:not(.highlighted-automated-event-row):hover td {
-    background-color: rgba(0, 0, 0, 0.05);
+.migraine-log-cell .m3-button, .migraine-log-cell .m3-table-select {
+    margin: 0; /* Remove default margins if any */
+    height: 36px; /* Slightly smaller for table context */
+    padding: 6px 12px;
+    font-size: var(--m3-label-medium-font-size);
 }
 
-/* Severity styling hints */
-.severity-low { color: #28a745; /* Green */ }
-.severity-medium { color: #ffc107; /* Yellow/Orange */ }
-.severity-high { color: #dc3545; /* Red */ }
-.severity-na { color: #6c757d; /* Grey */ }
+.migraine-log-cell .m3-button.danger-btn {
+    background-color: var(--m3-error-container);
+    color: var(--m3-on-error-container);
+}
+.migraine-log-cell .m3-button.danger-btn:not(:disabled):hover {
+    background-color: color-mix(in srgb, var(--m3-error-container) 92%, var(--m3-on-error-container) 8%);
+}
 
-
-button, .delete-event-btn, .confirm-delete-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
+.m3-table-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: transparent;
+    border: 1px solid var(--m3-outline);
+    border-radius: var(--m3-shape-corner-xs); /* 4px */
+    padding: 8px 32px 8px 12px; /* Right padding for arrow */
+    font-size: var(--m3-body-medium-font-size); /* 14px */
+    color: var(--m3-on-surface);
     cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.2s ease;
-}
-button:hover, .delete-event-btn:hover, .confirm-delete-btn:hover { background-color: #0056b3; }
-button:disabled { background-color: #cccccc; cursor: not-allowed; color: #666;}
-
-.delete-event-btn {
-    background-color: #ffc107;
-    color: #212529;
-}
-.delete-event-btn:hover { background-color: #e0a800; }
-
-.confirm-delete-btn {
-    background-color: #dc3545;
-}
-.confirm-delete-btn:hover { background-color: #c82333; }
-
-input[type="datetime-local"], input[type="number"] {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-#migraineForm div { margin-bottom: 1em; }
-
-#migraineList { list-style-type: disc; padding-left: 20px; }
-#migraineList li {
-    margin-bottom: 0.5em;
-    padding: 0.5em;
-    background-color: #f9f9f9;
-    border-left: 3px solid #007bff;
-    border-radius: 0 4px 4px 0;
+    /* SVG arrow, color uses --m3-on-surface-variant. Hex: #49454F, URL-encoded: %2349454F */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2349454F'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 20px;
+    min-width: 120px; /* Ensure it's not too small */
+    box-sizing: border-box;
+    height: 40px; /* Consistent height */
+    line-height: normal; /* Reset line-height that might be inherited */
 }
 
-footer {
+.m3-table-select:focus {
+    border-color: var(--m3-primary);
+    outline: 2px solid transparent; /* Remove default, could add M3 focus ring if complex */
+    box-shadow: 0 0 0 2px var(--m3-primary); /* Simple focus ring */
+}
+.m3-table-select option {
+    background-color: var(--m3-surface-container-lowest); /* Or another appropriate M3 surface for dropdown menu */
+    color: var(--m3-on-surface);
+}
+
+
+/* Notification Area (Snackbar Container) */
+.m3-snackbar-container {
+    position: fixed;
+    bottom: 16px; /* M3 recommends 8dp from edge, but more can be acceptable */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Spacing between multiple snackbars */
+    width: fit-content; /* Ensure it doesn't stretch full width unnecessarily */
+}
+
+.m3-notification {
+    background-color: var(--m3-inverse-surface);
+    color: var(--m3-inverse-on-surface);
+    padding: 14px 16px;
+    border-radius: var(--m3-shape-corner-xs); /* 4px */
+    box-shadow: var(--m3-elevation-3);
+    font-size: var(--m3-body-medium-font-size); /* 14px */
+    line-height: var(--m3-body-medium-line-height);
+    letter-spacing: var(--m3-body-medium-letter-spacing);
+    min-width: 288px; /* M3 min width */
+    max-width: 568px; /* M3 max width */
+    margin-top: 8px; /* Only if multiple, else handled by gap in container */
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: opacity 0.3s cubic-bezier(0.0, 0.0, 0.2, 1), transform 0.3s cubic-bezier(0.0, 0.0, 0.2, 1);
+    pointer-events: none; /* Initially not interactive */
+}
+
+.m3-notification.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto; /* Interactive when shown */
+}
+
+.m3-notification.success { background-color: #4CAF50; color: white; } /* Custom, consider M3 semantic colors if available */
+.m3-notification.error { background-color: var(--m3-error); color: var(--m3-on-error); }
+.m3-notification.info { background-color: #2196F3; color: white; } /* Custom */
+.m3-notification.warning { background-color: #FF9800; color: black; } /* Custom, ensure contrast */
+
+
+/* Footer */
+.m3-footer {
+    background-color: var(--m3-surface-container);
+    color: var(--m3-on-surface-variant);
+    padding: 16px;
     text-align: center;
-    padding: 1em;
-    background-color: #343a40;
-    color: white;
-    font-size: 0.9em;
-    margin-top: auto; /* Pushes footer to bottom */
+    font-size: var(--m3-body-small-font-size);
+    margin-top: auto; /* Pushes footer to bottom if main content is short */
 }
-/* filename: style.css */
+
+/* Highcharts specific overrides for M3 */
+.highcharts-title, .highcharts-subtitle, .highcharts-axis-title, .highcharts-axis-labels, .highcharts-legend-item text, .highcharts-tooltip text {
+    font-family: var(--m3-font-family-plain) !important;
+}
+.highcharts-credits { display: none !important; }
+
+/* Chart Container */
+.chart-container {
+    width: 100%;
+    height: 400px; /* Or as needed */
+    border-radius: var(--m3-shape-corner-sm);
+    overflow: hidden; /* Ensure chart respects border radius */
+}
+.large-chart-container { height: 390px; } /* If you need a larger default for main chart */
+
+/* Styles for automated event controls */
+.automated-events-controls {
+    margin-bottom: 16px; /* Space between controls and table */
+}
+
+
+/* Table row highlighting */
+#pressureEventsTable tbody tr.highlighted-automated-event-row {
+    background-color: rgba(var(--m3-primary-rgb), 0.12) !important; /* M3 Selected state layer (Primary with 12% opacity), use !important to override hover if necessary */
+}
+/* Ensure normal hover is less prominent than selection */
+#pressureEventsTable tbody tr:not(.highlighted-automated-event-row):hover td {
+    background-color: rgba(var(--m3-on-surface-rgb), 0.04);
+}
+
+
+#pressureEventsTable tbody tr.current-event td {
+    /* Example: A subtle indicator for current events */
+    /* You could add a border, a dot, or slightly different background */
+    /* box-shadow: inset 3px 0 0 var(--m3-secondary); */ /* Example: inner left border */
+    font-weight: 500; /* Make text slightly bolder */
+}
+
+
+.migraine-log-cell > div { /* For the button container generated in app.js */
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Small gap between buttons */
+}
+
+/* Ensure HTML and BODY take full height for footer behavior */
+html, body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+body > .m3-main-content {
+    flex-grow: 1;
+}

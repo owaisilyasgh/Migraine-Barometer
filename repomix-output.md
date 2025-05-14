@@ -65,77 +65,71 @@ sw.js
     <title>Pressure & Migraine Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#317EFB"/>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="theme-color" content="#6750A4"/>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PressureTrack">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div id="notification-area"></div>
+<body class="theme-mode-light m3-body">
 
-    <header>
-        <h1>Pressure & Migraine Tracker</h1>
+    <div id="notification-area" class="m3-snackbar-container"></div>
+
+    <header class="m3-top-app-bar">
+        <h1 class="m3-top-app-bar__title">Pressure & Migraine Tracker</h1>
     </header>
 
-    <main>
-
-        <section id="pressure-chart-section">
-            <h2>Surface Pressure Over Time</h2>
-            <div class="chart-container large-chart-container">
-                <div id="pressureChart"></div>
+    <main class="m3-main-content">
+        <section id="pressure-chart-section" class="m3-card">
+            <h2 class="m3-card__title">Surface Pressure Over Time</h2>
+            <div class="m3-card__content">
+                <div class="chart-container large-chart-container">
+                    <div id="pressureChart"></div>
+                </div>
             </div>
         </section>
 
-        <section id="pressure-events-section">
-            <h2>Detected Pressure Events (Automated)</h2>
-            <div class="automated-events-controls">
-                <button id="mergeAutomatedEventsBtn" disabled>Merge Selected Automated (2)</button>
-                <button id="unmergeAutomatedEventBtn" disabled>Unmerge Selected (1)</button>
+        <section id="pressure-events-section" class="m3-card">
+            <h2 class="m3-card__title">Detected Pressure Events (Automated)</h2>
+            <div class="m3-card__content">
+                <div class="automated-events-controls m3-button-group">
+                    <button id="mergeAutomatedEventsBtn" class="m3-button m3-button-outlined" disabled>Merge Selected (2)</button>
+                    <button id="unmergeAutomatedEventBtn" class="m3-button m3-button-outlined" disabled>Unmerge Selected (1)</button>
+                </div>
+                <div class="m3-table-container">
+                    <table id="pressureEventsTable" class="m3-table">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Duration (hrs)</th>
+                                <th>(hPa)±</th>
+                                <th>Type</th>
+                                <th>Rate (hPa/hr)</th>
+                                <th>Severity</th>
+                                <th>Migraine Log</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
-            <table id="pressureEventsTable">
-                <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Duration (hrs)</th>
-                        <th>Pressure Change (hPa)</th>
-                        <th>Type</th>
-                        <th>Rate (hPa/hr)</th>
-                        <th>Severity</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
         </section>
 
-        <section id="migraine-log-section">
-            <h2>Log Migraine Event</h2>
-            <form id="migraineForm">
-                <div>
-                    <label for="migraineStartTime">Start Time:</label>
-                    <input type="datetime-local" id="migraineStartTime" required>
-                </div>
-                <div>
-                    <label for="migraineEndTime">End Time:</label>
-                    <input type="datetime-local" id="migraineEndTime" required>
-                </div>
-                <button type="submit">Log Migraine</button>
-            </form>
-            <h3>Logged Migraines</h3>
-            <ul id="migraineList"></ul>
-        </section>
+
     </main>
 
-    <footer>
+    <footer class="m3-footer">
         <p>Pressure Tracker PWA</p>
     </footer>
 
     <script src="https://code.highcharts.com/highcharts.js" defer></script>
     <script src="https://code.highcharts.com/modules/accessibility.js" defer></script>
-    <script src="https://code.highcharts.com/modules/exporting.js" defer></script> {/* Needed for context menu */}
-    {/* Theme JS files will be loaded dynamically by app.js if not default */}
+    <script src="https://code.highcharts.com/modules/exporting.js" defer></script>
     <script type="module" src="js/app.js" defer></script>
 
 </body>
@@ -147,87 +141,49 @@ sw.js
 ```javascript
 // js/app.js
 ⋮----
-let currentThemeId = Config.DEFAULT_THEME_ID; // Keep track of the current theme
+// Module-level state
 ⋮----
-document.addEventListener('DOMContentLoaded', () => {
-registerServiceWorker();
-setupEventListeners(); // General listeners
-UIRenderer.setCurrentHighlightHandler(handleAutomatedEventRowClick);
-UIRenderer.loadAndDisplayMigraines(db);
+// Define functions once at the top level of the module scope
 ⋮----
-// Load saved theme or use default, then apply it (which triggers data load)
-currentThemeId = db.loadData(Config.THEME_STORAGE_KEY) || Config.DEFAULT_THEME_ID;
-applyTheme(currentThemeId);
-⋮----
-function registerServiceWorker() {
+function registerServiceWorker() { // Defined ONCE
 ⋮----
 navigator.serviceWorker.register('./sw.js')
 .then(registration => console.log('SW registered:', registration.scope))
 .catch(error => console.error('SW registration failed:', error));
 ⋮----
-/**
- * Applies the selected theme and reloads the chart.
- * @param {string} themeId - The ID of the theme to apply.
- */
-function applyTheme(themeId) {
-currentThemeId = themeId; // Update global current theme
+function applyTheme(themeId) { // Defined ONCE
+⋮----
 db.saveData(Config.THEME_STORAGE_KEY, themeId);
-⋮----
 const selectedTheme = Config.THEMES.find(t => t.id === themeId);
-⋮----
-console.error(`Theme with ID ${themeId} not found.`);
-// Apply defaults and reload chart
-applyGlobalStylesAndReloadChart(null); // Pass null if theme object isn't found or is default
-⋮----
-// Remove any previously loaded dynamic theme script
 const oldThemeScript = document.getElementById(Config.DYNAMIC_THEME_SCRIPT_ID);
 if (oldThemeScript) oldThemeScript.remove();
+⋮----
+Highcharts.setOptions(ChartManager.HIGHCHARTS_EXPLICIT_DEFAULT_STYLES);
+Highcharts.setOptions(ChartManager.BASE_HIGHCHARTS_OPTIONS);
+⋮----
+const finalizeThemeAndProcessData = () => {
+⋮----
+ChartManager.destroyChart();
+processAndDisplayPressureData(currentPressureHourlyTimes, currentPressureHourlyValues);
+⋮----
+initiateFreshDataLoad();
 ⋮----
 UIRenderer.showNotification(`Loading ${selectedTheme.name} theme...`, "info", 2000);
 const script = document.createElement('script');
 ⋮----
 script.onload = () => {
-console.log(`${selectedTheme.name} theme script loaded.`);
 UIRenderer.showNotification(`${selectedTheme.name} theme applied.`, "success", 1500);
-applyGlobalStylesAndReloadChart(selectedTheme);
+finalizeThemeAndProcessData();
 ⋮----
 script.onerror = () => {
-console.error(`Error loading theme script: ${selectedTheme.url}`);
-UIRenderer.showNotification(`Error loading ${selectedTheme.name}. Reverting.`, "error");
-const failedScript = document.getElementById(Config.DYNAMIC_THEME_SCRIPT_ID);
-if (failedScript) failedScript.remove();
-currentThemeId = Config.DEFAULT_THEME_ID; // Revert to default ID
+UIRenderer.showNotification(`Error loading ${selectedTheme.name}. Reverting to Default.`, "error");
+⋮----
 db.saveData(Config.THEME_STORAGE_KEY, currentThemeId);
-applyGlobalStylesAndReloadChart(Config.THEMES.find(t => t.id === Config.DEFAULT_THEME_ID));
 ⋮----
 document.head.appendChild(script);
-} else { // Default theme or theme without a URL (e.g. our "Default")
-console.log(`Applying ${selectedTheme.name} theme (no external script).`);
 ⋮----
-/**
- * Sets global Highcharts styles (defaults then base) and reloads chart data.
- * If a theme script was just loaded, its styles are already globally set by Highcharts.
- * We then re-apply our base options to ensure crucial functional settings.
- * @param {object|null} themeObject - The theme object that was just applied (null if default or error).
- */
-function applyGlobalStylesAndReloadChart(themeObject) {
-⋮----
-// 1. Reset to our explicit default visual styles
-Highcharts.setOptions(ChartManager.HIGHCHARTS_EXPLICIT_DEFAULT_STYLES);
-// 2. Re-apply our base functional options (e.g., useUTC: false)
-Highcharts.setOptions(ChartManager.BASE_HIGHCHARTS_OPTIONS);
-// 3. If an external theme script was loaded, its styles are already in Highcharts' global options.
-//    The above two setOptions calls ensure our defaults are a base, and our functional
-//    options are prioritized or correctly merged.
-⋮----
-loadPressureData(); // This will re-initialize the chart
-⋮----
-// Removed handleThemeChange as it's now part of Highcharts menu items.
-// The callback `applyTheme` is passed to `initializeChart`.
-⋮----
-async function fetchPressureDataFromAPI(latitude, longitude) {
+async function fetchPressureDataFromAPI(latitude, longitude) { // Defined ONCE
 const apiUrl = Config.API_URL_TEMPLATE.replace('{LAT}', latitude).replace('{LON}', longitude);
-UIRenderer.showNotification("Fetching live pressure data...", "info", 3000);
 ⋮----
 const response = await fetch(apiUrl);
 if (!response.ok) throw new Error(`API error! status: ${response.status}`);
@@ -237,8 +193,7 @@ UIRenderer.showNotification("Live pressure data fetched!", "success", 1500);
 console.error('Error fetching live data:', error);
 UIRenderer.showNotification(`Error fetching live data: ${error.message}.`, "error");
 ⋮----
-async function fetchPressureDataFromMock() {
-UIRenderer.showNotification("Fetching mock pressure data...", "info", 2000);
+async function fetchPressureDataFromMock() { // Defined ONCE
 ⋮----
 const response = await fetch(Config.MOCK_DATA_PATH);
 if (!response.ok) throw new Error(`Mock data HTTP error! status: ${response.status}`);
@@ -248,42 +203,60 @@ UIRenderer.showNotification("Mock data loaded.", "success", 1000);
 console.error('Error fetching mock data:', error);
 UIRenderer.showNotification(`Error loading mock data: ${error.message}.`, "error");
 ⋮----
-async function loadPressureData() {
+async function initiateFreshDataLoad() { // Defined ONCE
+UIRenderer.showNotification("Fetching latest pressure data...", "info", 2500);
+⋮----
+let sourceInfo = { type: 'unknown', fetchTimestamp: Date.now() };
 ⋮----
 const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 }));
-pressureDataJson = await fetchPressureDataFromAPI(position.coords.latitude, position.coords.longitude);
-if (!pressureDataJson) pressureDataJson = await fetchPressureDataFromAPI(Config.DEFAULT_LATITUDE, Config.DEFAULT_LONGITUDE);
+⋮----
+pressureDataJson = await fetchPressureDataFromAPI(sourceInfo.lat, sourceInfo.lon);
 ⋮----
 UIRenderer.showNotification(`Geolocation failed: ${geoError.message}. Using default.`, "warning", 4000);
-pressureDataJson = await fetchPressureDataFromAPI(Config.DEFAULT_LATITUDE, Config.DEFAULT_LONGITUDE);
 ⋮----
-UIRenderer.showNotification("Geolocation N/A. Using default location.", "warning", 4000);
+UIRenderer.showNotification("Geolocation N/A. Using default.", "warning", 4000);
 ⋮----
-if (!pressureDataJson) pressureDataJson = await fetchPressureDataFromMock(); // Ultimate fallback
+UIRenderer.showNotification("Live data failed. Using mock as fallback.", "warning", 3000);
+sourceInfo.type = 'mock-fallback'; pressureDataJson = await fetchPressureDataFromMock();
 ⋮----
-pressureDataJson = await fetchPressureDataFromMock();
+sourceInfo.type = 'mock'; pressureDataJson = await fetchPressureDataFromMock();
 ⋮----
-const chartInstance = ChartManager.initializeChart(
+db.saveData(Config.CACHED_PRESSURE_DATA_KEY, { times: currentPressureHourlyTimes, values: currentPressureHourlyValues, sourceInfo: currentPressureDataSourceInfo });
 ⋮----
-Config.THEMES, // Pass available themes
-currentThemeId, // Pass current active theme ID
-applyTheme      // Pass the callback for theme selection
+UIRenderer.showNotification("Failed to load any pressure data.", "error");
 ⋮----
-PressureEventManager.detectAndStoreAutomatedPressureEvents(pressureDataJson.hourly.time, pressureDataJson.hourly.surface_pressure, UIRenderer.showNotification, ChartManager.updateChartPlotBand);
-rerenderAutomatedEventsUI();
-} else { UIRenderer.showNotification("Error initializing chart.", "error"); }
-⋮----
-UIRenderer.showNotification("No pressure data. Chart cannot be displayed.", "error");
-ChartManager.destroyChart();
 const tableBody = document.getElementById(Config.EVENTS_TABLE_BODY_ID)?.getElementsByTagName('tbody')[0];
+⋮----
+db.removeData(Config.CACHED_PRESSURE_DATA_KEY);
 ⋮----
 UIRenderer.updateAutomatedEventActionButtonsState();
 ⋮----
-function rerenderAutomatedEventsUI() {
-UIRenderer.renderAutomatedEventsTable(PressureEventManager.getAllAutomatedEvents(), currentlyHighlightedAutomatedEventId, handleAutomatedEventRowClick, UIRenderer.updateAutomatedEventActionButtonsState);
+function processAndDisplayPressureData(times, values) { // Defined ONCE
 ⋮----
-function handleAutomatedEventRowClick(eventId, clickedRowElement) {
-const eventData = PressureEventManager.getAllAutomatedEvents().find(e => e.id === eventId);
+UIRenderer.showNotification("No data to display.", "error");
+⋮----
+const chartInstance = ChartManager.initializeChart(times, values, Config.THEMES, currentThemeId, applyTheme);
+⋮----
+currentAutomatedEvents = PressureEventManager.detectAndStoreAutomatedPressureEvents(times, values, UIRenderer.showNotification, ChartManager.updateChartPlotBand);
+rerenderAutomatedEventsUI();
+⋮----
+UIRenderer.showNotification("Error initializing chart.", "error");
+⋮----
+function handleEventMigraineChange(eventId, selectElement) { // Defined ONCE
+⋮----
+db.saveData(Config.EVENT_MIGRAINE_LOGS_KEY, eventMigraineLogs);
+UIRenderer.showNotification("Migraine log cleared for event.", "info", 1500);
+⋮----
+eventMigraineLogs[eventId] = { severity: newSeverity, loggedAt: Date.now() };
+⋮----
+UIRenderer.showNotification(`Migraine as '${newSeverity}' logged for event.`, "success", 1500);
+⋮----
+function rerenderAutomatedEventsUI() { // Defined ONCE
+UIRenderer.renderAutomatedEventsTable(
+⋮----
+function handleAutomatedEventRowClick(eventId, clickedRowElement) { // Defined ONCE
+⋮----
+const eventData = allEvents.find(e => e.id === eventId);
 ⋮----
 ChartManager.updateChartPlotBand(null);
 if (clickedRowElement) clickedRowElement.classList.remove('highlighted-automated-event-row');
@@ -293,32 +266,34 @@ else ChartManager.updateChartPlotBand(null);
 document.querySelectorAll(`#${Config.EVENTS_TABLE_BODY_ID} tbody tr.highlighted-automated-event-row`).forEach(row => row.classList.remove('highlighted-automated-event-row'));
 if (clickedRowElement) clickedRowElement.classList.add('highlighted-automated-event-row');
 ⋮----
-function setupEventListeners() {
-const migraineForm = document.getElementById(Config.MIGRAINE_FORM_ID);
-if (migraineForm) migraineForm.addEventListener('submit', handleMigraineSubmit);
+function setupEventListeners() { // Defined ONCE
 const mergeBtn = document.getElementById(Config.MERGE_EVENTS_BTN_ID);
-if (mergeBtn) mergeBtn.addEventListener('click', () => {
-if (PressureEventManager.handleMergeAutomatedEvents(() => currentlyHighlightedAutomatedEventId, UIRenderer.showNotification, ChartManager.updateChartPlotBand)) currentlyHighlightedAutomatedEventId = null;
+⋮----
+mergeBtn.addEventListener('click', createRipple);
+mergeBtn.addEventListener('click', () => {
+if (PressureEventManager.handleMergeAutomatedEvents(() => currentlyHighlightedAutomatedEventId, UIRenderer.showNotification, ChartManager.updateChartPlotBand)) {
+⋮----
+currentAutomatedEvents = PressureEventManager.getAllAutomatedEvents();
 ⋮----
 const unmergeBtn = document.getElementById(Config.UNMERGE_EVENT_BTN_ID);
-if (unmergeBtn) unmergeBtn.addEventListener('click', () => {
-if (PressureEventManager.handleUnmergeAutomatedEvent(() => currentlyHighlightedAutomatedEventId, UIRenderer.showNotification, ChartManager.updateChartPlotBand)) currentlyHighlightedAutomatedEventId = null;
 ⋮----
-function handleMigraineSubmit(event) {
-event.preventDefault();
-const startTimeInput = document.getElementById(Config.MIGRAINE_START_TIME_ID);
-const endTimeInput = document.getElementById(Config.MIGRAINE_END_TIME_ID);
-if (!startTimeInput.value || !endTimeInput.value) { UIRenderer.showNotification("Please select both start and end times.", "error"); return; }
-const startTimeUnix = Math.floor(new Date(startTimeInput.value).getTime() / 1000);
-const endTimeUnix = Math.floor(new Date(endTimeInput.value).getTime() / 1000);
-if (endTimeUnix <= startTimeUnix) { UIRenderer.showNotification("End time cannot be before or same as start time.", "error"); return; }
-const newMigraine = { id: `migraine_${Date.now()}`, startTime: startTimeUnix, endTime: endTimeUnix };
-const migraines = db.loadData('migraines') || [];
-migraines.push(newMigraine);
-db.saveData('migraines', migraines);
+unmergeBtn.addEventListener('click', createRipple);
+unmergeBtn.addEventListener('click', () => {
+if (PressureEventManager.handleUnmergeAutomatedEvent(() => currentlyHighlightedAutomatedEventId, UIRenderer.showNotification, ChartManager.updateChartPlotBand)) {
 ⋮----
-if (migraineForm) migraineForm.reset();
-UIRenderer.showNotification("Migraine event logged!", "success");
+// DOMContentLoaded listener is the main entry point
+document.addEventListener('DOMContentLoaded', () => {
+registerServiceWorker(); // Call the single definition
+setupEventListeners(); // Call the single definition
+UIRenderer.setCurrentHighlightHandler(handleAutomatedEventRowClick);
+⋮----
+currentThemeId = db.loadData(Config.THEME_STORAGE_KEY) || Config.DEFAULT_THEME_ID;
+eventMigraineLogs = db.loadData(Config.EVENT_MIGRAINE_LOGS_KEY) || {};
+⋮----
+const cachedData = db.loadData(Config.CACHED_PRESSURE_DATA_KEY);
+⋮----
+UIRenderer.showNotification("Displaying cached pressure data.", "info", 2000);
+applyTheme(currentThemeId); // Call the single definition
 ⋮----
 // filename: js/app.js
 ```
@@ -327,71 +302,54 @@ UIRenderer.showNotification("Migraine event logged!", "success");
 ```javascript
 // js/chartManager.js
 ⋮----
-// These are our core functional settings that should always apply or be reapplied.
+backgroundColor: 'var(--m3-surface-container-low, #FFFBFE)', // Use M3 variable with fallback
 ⋮----
-useUTC: false // Ensures chart displays in local time
+fontSize: '12px' // Base chart font size
 ⋮----
-// Add any other essential global overrides here if themes tend to change them undesirably
-// For example, if a theme sets credits, and you always want them off:
-// credits: { enabled: false }
+colors: ['var(--m3-primary, #6750A4)', 'var(--m3-secondary, #625B71)', 'var(--m3-tertiary, #7D5260)', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'], // M3 primary, secondary, tertiary then defaults
 ⋮----
-// Define styles that represent Highcharts' "factory default" look.
-// This helps in resetting visual aspects when switching from a styled theme back to "Default".
+style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: '16px', fontWeight: '500' } // M3 Title Medium
 ⋮----
-backgroundColor: '#FFFFFF', // Default Highcharts background
-// plotBorderColor: '#cccccc', // Example
-// plotBackgroundColor: null, // Example
+style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: '14px' } // M3 Title Small
 ⋮----
-colors: ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'], // Default series colors
+labels: { style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: '12px' } }, // M3 Label Medium
 ⋮----
-gridLineWidth: 0, // Default for spline, but themes like "Grid Light" change this
+itemStyle: { color: 'var(--m3-on-surface, #1C1B1F)', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }, // M3 Label Large
 ⋮----
-gridLineWidth: 1, // Often default, but good to be explicit
+backgroundColor: 'var(--m3-surface-container-highest, #E6E0E9)', // M3 Surface Container Highest
 ⋮----
-enabled: false // Explicitly disable credits as a baseline
+borderRadius: 4, // M3 Extra Small Corner
+style: { color: 'var(--m3-on-surface, #1C1B1F)', fontSize: '12px' } // M3 Body Small
 ⋮----
-// Add other common styling attributes that themes might override and you want to reset.
+dataLabels: { style: { color: 'var(--m3-on-surface, #1C1B1F)', fontSize: '11px', fontWeight: '500', textOutline: 'none' } }, // No text outline for M3
 ⋮----
-// Apply base functional options globally when chartManager.js is first loaded.
+fill: 'var(--m3-surface-container-low, #F7F2FA)', // M3 Surface
 ⋮----
-Highcharts.setOptions(BASE_HIGHCHARTS_OPTIONS);
+menuStyle: { background: 'var(--m3-surface-container-low, #F7F2FA)', border: '1px solid var(--m3-outline, #79747E)', padding: '8px 0' }, // M3 Menu
+menuItemStyle: { background: 'none', color: 'var(--m3-on-surface-variant, #49454F)', padding: '12px 16px', fontSize: '14px' }, // M3 List Item
+menuItemHoverStyle: { background: 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.08)', color: 'var(--m3-on-surface-variant, #49454F)' } // M3 State Layer
 ⋮----
-/**
- * Initializes the Highcharts pressure chart.
- * @param {number[]} times - Array of Unix timestamps (seconds).
- * @param {number[]} pressures - Array of pressure values.
- * @param {object[]} availableThemes - Config.THEMES array.
- * @param {string} activeThemeId - The ID of the currently active theme.
- * @param {function} onThemeSelectedCallback - Function to call when a theme is selected from context menu.
- */
+Highcharts.setOptions(HIGHCHARTS_EXPLICIT_DEFAULT_STYLES); // Apply visual defaults first
+Highcharts.setOptions(BASE_HIGHCHARTS_OPTIONS); // Then apply functional base options
+⋮----
 export function initializeChart(times, pressures, availableThemes, activeThemeId, onThemeSelectedCallback) {
 const chartContainer = document.getElementById(CHART_CONTAINER_ID);
 ⋮----
 console.error("Chart container div not found:", CHART_CONTAINER_ID);
 ⋮----
-console.error("Invalid or empty data provided for chart initialization.");
 if (pressureChartInstance) pressureChartInstance.destroy();
 ⋮----
 const seriesData = times.map((time, index) => [time * 1000, pressures[index]]);
-⋮----
-// --- Construct theme menu items for Highcharts context menu ---
 const themeMenuItems = availableThemes.map(theme => ({
 ⋮----
-onThemeSelectedCallback(theme.id);
+onclick: function () { onThemeSelectedCallback(theme.id); }
 ⋮----
 pressureChartInstance = Highcharts.chart(CHART_CONTAINER_ID, {
 chart: { type: 'spline', zoomType: 'x', events: { load: function() { addCurrentTimePlotLine(this); } } },
-// time: { useUTC: false } is set globally via BASE_HIGHCHARTS_OPTIONS
 ⋮----
 xAxis: { type: 'datetime', labels: { formatter: function () { return Highcharts.dateFormat('%e %b, %H:%M', this.value); } }, title: { text: 'Time' } },
 ⋮----
 tooltip: { formatter: function () { return `<b>${Highcharts.dateFormat('%A, %b %e, %Y, %H:%M', this.x)}</b><br/>Pressure: ${this.y.toFixed(1)} hPa`; } },
-⋮----
-credits: { enabled: false }, // Ensure credits are off, might be re-enabled by themes
-⋮----
-// Default exporting options
-⋮----
-// Custom theme selector items
 ⋮----
 console.error("Error initializing Highcharts:", error);
 ⋮----
@@ -403,15 +361,13 @@ const xAxisExtremes = chartInstance.xAxis[0].getExtremes();
 ⋮----
 chartInstance.xAxis[0].addPlotLine({
 ⋮----
-label: { text: 'Now', align: 'center', y: -5, style: { fontWeight: 'bold' } }, // Color will be themed
-⋮----
 export function updateChartPlotBand(eventData) {
 ⋮----
 pressureChartInstance.xAxis[0].removePlotBand(PLOT_BAND_ID);
 ⋮----
 pressureChartInstance.xAxis[0].addPlotBand({
 ⋮----
-// color: 'rgba(0, 123, 255, 0.2)', // Color will be themed
+color: 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.12)', // M3 primary with low opacity
 ⋮----
 export function destroyChart() {
 ⋮----
@@ -432,11 +388,19 @@ try { pressureChartInstance.destroy(); } catch (e) { console.error("Error destro
 ⋮----
 // Chart Themes Configuration
 ⋮----
+// Cached Data Configuration
+⋮----
+// Migraine Logging Configuration
+⋮----
 // Configuration for automated peak/valley detection
 ⋮----
 // DOM Element IDs
 ⋮----
-// export const CHART_THEME_SELECTOR_ID = 'chartThemeSelector'; // No longer needed for external dropdown
+// Removed old migraine form/list IDs
+// export const MIGRAINE_FORM_ID = 'migraineForm';
+// export const MIGRAINE_START_TIME_ID = 'migraineStartTime';
+// export const MIGRAINE_END_TIME_ID = 'migraineEndTime';
+// export const MIGRAINE_LIST_ID = 'migraineList';
 ⋮----
 // Plot Band ID for Highcharts
 ⋮----
@@ -612,30 +576,27 @@ showNotification("Event unmerged successfully!", "success");
 ```javascript
 // js/uiRenderer.js
 ⋮----
-import { EVENTS_TABLE_BODY_ID, MIGRAINE_LIST_ID, MERGE_EVENTS_BTN_ID, UNMERGE_EVENT_BTN_ID } from './config.js'; // Removed CHART_THEME_SELECTOR_ID
-⋮----
 export function setCurrentHighlightHandler(handler) {
 ⋮----
-// Removed setupThemeSelector and updateThemeSelectorUI as dropdown is now in chart context menu.
+export function renderAutomatedEventsTable(
 ⋮----
-export function renderAutomatedEventsTable(eventsToRender, currentlyHighlightedEventId, onRowClickHandler, onCheckboxChangeHandler) {
+currentEventMigraineLogs, // New: Pass all current logs
+onEventMigraineChangeAppCallback // New: Callback to app.js for select change
+⋮----
 const tableElement = document.getElementById(EVENTS_TABLE_BODY_ID);
-⋮----
-console.error("Automated pressure events table element not found:", EVENTS_TABLE_BODY_ID);
 ⋮----
 const tableBody = tableElement.getElementsByTagName('tbody')[0];
 ⋮----
-console.error("Automated pressure events table body not found.");
-⋮----
 const row = tableBody.insertRow();
 const cell = row.insertCell();
+cell.colSpan = 9; // Adjusted for new column count
 ⋮----
 updateAutomatedEventActionButtonsState(onCheckboxChangeHandler);
 ⋮----
-const nowUnix = Math.floor(Date.now() / 1000);
 eventsToRender.forEach(event => {
 ⋮----
 row.addEventListener('click', (e) => {
+// Prevent row click if interacting with checkbox or the new select dropdown
 ⋮----
 if (onRowClickHandler) onRowClickHandler(event.id, row);
 ⋮----
@@ -645,45 +606,51 @@ const checkbox = document.createElement('input');
 checkbox.addEventListener('change', () => onCheckboxChangeHandler());
 cellSelect.appendChild(checkbox);
 ⋮----
-row.insertCell().textContent = formatUnixTimestamp(event.startTime);
-row.insertCell().textContent = formatUnixTimestamp(event.endTime);
+row.insertCell().textContent = formatUnixTimestamp(event.startTime); // Uses updated format
+row.insertCell().textContent = formatUnixTimestamp(event.endTime);   // Uses updated format
 row.insertCell().textContent = event.durationHours.toFixed(1);
 row.insertCell().textContent = typeof event.pressureChange === 'number' ? event.pressureChange.toFixed(1) : 'N/A';
-row.insertCell().textContent = event.isMerged ? `${event.type} (Merged)` : event.type;
+⋮----
+// Capitalize Type
+let typeDisplay = event.type.charAt(0).toUpperCase() + event.type.slice(1);
+⋮----
+row.insertCell().textContent = typeDisplay;
+⋮----
 row.insertCell().textContent = (typeof event.rateOfChange === 'number') ? event.rateOfChange.toFixed(2) : 'N/A';
 const severityCell = row.insertCell();
 ⋮----
 severityCell.classList.add(`severity-${(event.severity || 'na').toLowerCase()}`);
 ⋮----
+// Migraine Log Dropdown Cell
+const migraineLogCell = row.insertCell();
+migraineLogCell.classList.add('migraine-log-cell');
+const selectMigraine = document.createElement('select');
+selectMigraine.classList.add('m3-table-select'); // For potential M3 select styling
+⋮----
+// Default "None" or placeholder option
+const defaultOption = document.createElement('option');
+defaultOption.value = "none"; // Or ""
+⋮----
+selectMigraine.appendChild(defaultOption);
+⋮----
+MIGRAINE_SEVERITIES.forEach(severity => {
+const option = document.createElement('option');
+⋮----
+selectMigraine.appendChild(option);
+⋮----
+// Set selected value based on current logs
+⋮----
+selectMigraine.addEventListener('change', (e) => {
+⋮----
+onEventMigraineChangeAppCallback(event.id, e.target); // Pass eventId and the select element
+⋮----
+migraineLogCell.appendChild(selectMigraine);
+⋮----
+const nowUnix = Math.floor(Date.now() / 1000);
 if (nowUnix >= event.startTime && nowUnix <= event.endTime) row.classList.add('current-event');
 if (event.id === currentlyHighlightedEventId) row.classList.add('highlighted-automated-event-row');
 ⋮----
-export function updateAutomatedEventActionButtonsState() {
-⋮----
-const events = getAllAutomatedEvents();
-const checkboxes = Array.from(tableElement.querySelectorAll('tbody input[type="checkbox"]:checked'));
-const mergeBtn = document.getElementById(MERGE_EVENTS_BTN_ID);
-const unmergeBtn = document.getElementById(UNMERGE_EVENT_BTN_ID);
-⋮----
-const selectedEventIds = checkboxes.map(cb => cb.dataset.eventId);
-const selectedEvents = events.filter(e => selectedEventIds.includes(e.id));
-if (selectedEvents.length === 2 && !selectedEvents.some(e => e.isMerged)) canMerge = true;
-⋮----
-const selectedEvent = events.find(e => e.id === checkboxes[0].dataset.eventId);
-⋮----
-export function loadAndDisplayMigraines(dbInstance) {
-const migraines = dbInstance.loadData('migraines') || [];
-const listElement = document.getElementById(MIGRAINE_LIST_ID);
-⋮----
-console.error("Migraine list element not found:", MIGRAINE_LIST_ID);
-⋮----
-migraines.sort((a, b) => b.startTime - a.startTime);
-⋮----
-migraines.forEach(migraine => {
-const listItem = document.createElement('li');
-listItem.textContent = `From: ${formatUnixTimestamp(migraine.startTime)} To: ${formatUnixTimestamp(migraine.endTime)}`;
-listElement.appendChild(listItem);
-⋮----
+export function updateAutomatedEventActionButtonsState() { /* ... (no changes) ... */ }
 // filename: js/uiRenderer.js
 ```
 
@@ -692,44 +659,51 @@ listElement.appendChild(listItem);
 // js/utils.js
 ⋮----
 /**
- * Formats a Unix timestamp (seconds) into a human-readable string.
+ * Formats a Unix timestamp (seconds) into "Month Day, Hour AM/PM" string.
+ * e.g., "May 12, 12 AM" or "May 12, 3 PM"
  * @param {number} unixTimestamp - The Unix timestamp in seconds.
- * @param {string} formatType - 'datetime' for full locale string, or any other for locale string.
  * @returns {string} The formatted date string.
  */
-export function formatUnixTimestamp(unixTimestamp, formatType = 'datetime') {
+export function formatUnixTimestamp(unixTimestamp) {
 const date = new Date(unixTimestamp * 1000);
 ⋮----
-return date.toLocaleString();
+const month = monthNames[date.getMonth()];
+const day = date.getDate();
+let hours = date.getHours();
 ⋮----
-// Highcharts handles its own axis formatting, this is for other UI parts.
+hours = hours ? hours : 12; // the hour '0' should be '12'
 ⋮----
-/**
- * Shows a notification message to the user.
- * @param {string} message - The message to display.
- * @param {string} [type='info'] - The type of notification ('info', 'success', 'error').
- * @param {number} [duration=3000] - How long to display the notification in milliseconds.
- */
 export function showNotification(message, type = 'info', duration = 3000) {
-const notificationArea = document.getElementById('notification-area'); // Using ID from config might be an option later
+const notificationArea = document.getElementById(NOTIFICATION_AREA_ID);
 ⋮----
 console.warn('Notification area not found in DOM.');
 ⋮----
 const notification = document.createElement('div');
+notification.classList.add('m3-notification', type);
 ⋮----
 notificationArea.appendChild(notification);
-⋮----
-// Trigger reflow to enable animation
 requestAnimationFrame(() => {
 notification.classList.add('show');
 ⋮----
 setTimeout(() => {
 notification.classList.remove('show');
-// Remove the element after the animation completes
 ⋮----
 notificationArea.removeChild(notification);
 ⋮----
-}, 500); // Matches CSS transition duration
+export function createRipple(event) {
+⋮----
+if (getComputedStyle(button).position === 'static') {
+⋮----
+const ripple = document.createElement('span');
+const rect = button.getBoundingClientRect();
+const size = Math.max(rect.width, rect.height);
+⋮----
+ripple.classList.add('m3-ripple');
+const existingRipple = button.querySelector('.m3-ripple');
+if (existingRipple) existingRipple.remove();
+button.appendChild(ripple);
+⋮----
+// filename: js/utils.js
 ```
 
 ## File: manifest.json
@@ -1266,84 +1240,98 @@ This app can be deployed on platforms like GitHub Pages or any static site hosti
 
 ## File: style.css
 ```css
-/* style.css - Add these styles */
-body {
+/* style.css */
+/* M3 Color Palette (Light Theme - Primary Purple) */
+:root {
 ⋮----
-#notification-area {
+--m3-primary-rgb: 103, 80, 164; /* For RGBA usage */
 ⋮----
-.notification {
-.notification.show { opacity: 1; transform: translateY(0); }
-.notification.success { background-color: #28a745; }
-.notification.error { background-color: #dc3545; }
-.notification.info { background-color: #17a2b8; }
-.notification.warning { background-color: #ffc107; color: #333; }
+/* Typography */
 ⋮----
-header {
-header h1 { margin: 0; font-size: 1.8em; }
+/* Shape */
 ⋮----
-main {
+/* Elevation */
 ⋮----
-section {
+/* Global M3 Body Styles */
+.m3-body {
 ⋮----
-/* New styles for settings section */
-.settings-section div {
+/* Top App Bar */
+.m3-top-app-bar {
+.m3-top-app-bar__title {
 ⋮----
-gap: 10px; /* Space between label and select */
+/* Main Content Area */
+.m3-main-content {
 ⋮----
-.settings-section label {
-#chartThemeSelector {
+/* Card Styles */
+.m3-card {
+.m3-card__title {
+/* .m3-card__content { } // Removed empty ruleset */
 ⋮----
-min-width: 200px; /* Ensure dropdown is not too small */
+/* Button Styles */
+.m3-button {
+.m3-button:disabled, .m3-button[disabled] {
+.m3-button-filled {
+.m3-button-filled:not(:disabled):hover {
+.m3-button-outlined {
+.m3-button-outlined:not(:disabled):hover {
+.m3-button-text {
+.m3-button-text:not(:disabled):hover {
+.m3-button-group {
 ⋮----
-h2 {
-h3 { font-size: 1.2em; color: #555; margin-top: 1.5em; margin-bottom: 0.5em; }
+/* Ripple Effect */
+.m3-ripple {
 ⋮----
-.chart-container { position: relative; height: 350px; width: 100%; margin-bottom: 1em; }
-.large-chart-container { height: 450px; } /* Can be adjusted */
-#pressureChart { display: block; box-sizing: border-box; height: 100% !important; width: 100% !important; }
+/* Table Styles */
+.m3-table-container {
+.m3-table {
+.m3-table th, .m3-table td {
+.m3-table th {
+.m3-table td {
+.m3-table tbody tr:hover td {
+.m3-table td input[type="checkbox"] {
+.m3-table .severity-low { color: var(--m3-primary); }
+.m3-table .severity-medium { color: #FF8C00; }
+.m3-table .severity-high { color: var(--m3-error); }
 ⋮----
-#migraineList li { font-weight: normal; color: #333; }
+/* Migraine Log Elements in Table */
+.migraine-log-cell { white-space: nowrap; }
+.migraine-log-cell .m3-button, .migraine-log-cell .m3-table-select {
+.migraine-log-cell .m3-button.danger-btn {
+.migraine-log-cell .m3-button.danger-btn:not(:disabled):hover {
+.m3-table-select {
 ⋮----
-.automated-events-controls { margin-bottom: 1em; }
-.automated-events-controls button { margin-right: 10px; }
+/* Notification Area (Snackbar Container) */
+.m3-snackbar-container {
+.m3-notification {
+.m3-notification.show { opacity: 1; transform: translateY(0) scale(1); }
+.m3-notification.success { background-color: #4CAF50; color: white; }
+.m3-notification.error { background-color: var(--m3-error); color: var(--m3-on-error); }
+.m3-notification.info { background-color: #2196F3; color: white; }
+.m3-notification.warning { background-color: #FF9800; color: white; }
 ⋮----
-table { width: 100%; border-collapse: collapse; margin-top: 1em; font-size: 0.9em; }
-th, td {
-th { background-color: #f9f9f9; color: #555; font-weight: bold; }
-tr.current-event td { background-color: #fff8e1; font-weight: bold; }
-td input[type="checkbox"] { transform: scale(1.2); margin-right: 5px;}
+/* Footer */
+.m3-footer {
 ⋮----
+/* Highcharts specific overrides for M3 */
+.highcharts-title, .highcharts-subtitle, .highcharts-axis-title, .highcharts-axis-labels, .highcharts-legend-item text, .highcharts-tooltip text {
+.highcharts-credits { display: none !important; }
+⋮----
+.chart-container {
+⋮----
+/* Basic styles for the old form (now just a message) */
+/* Removed #migraine-log-form-section p {} empty ruleset */
+⋮----
+/* Reset old generic styles as they are now handled by .m3-* classes */
+/* Removed empty ruleset for header, main, section, etc. */
+/* Removed empty ruleset for button, .delete-event-btn, .confirm-delete-btn */
+⋮----
+/* Old table row highlighting (ensure M3 style takes precedence or adapt) */
 #pressureEventsTable tbody tr.highlighted-automated-event-row td {
+#pressureEventsTable tbody tr.current-event td {
 ⋮----
-background-color: rgba(0, 123, 255, 0.15) !important; /* Ensure it overrides other hover/current styles */
+.migraine-log-cell > div { /* For the button container generated in app.js */
 ⋮----
-#pressureEventsTable tbody tr:not(.highlighted-automated-event-row):hover td {
-⋮----
-/* Severity styling hints */
-.severity-low { color: #28a745; /* Green */ }
-.severity-medium { color: #ffc107; /* Yellow/Orange */ }
-.severity-high { color: #dc3545; /* Red */ }
-.severity-na { color: #6c757d; /* Grey */ }
-⋮----
-button, .delete-event-btn, .confirm-delete-btn {
-button:hover, .delete-event-btn:hover, .confirm-delete-btn:hover { background-color: #0056b3; }
-button:disabled { background-color: #cccccc; cursor: not-allowed; color: #666;}
-⋮----
-.delete-event-btn {
-.delete-event-btn:hover { background-color: #e0a800; }
-⋮----
-.confirm-delete-btn {
-.confirm-delete-btn:hover { background-color: #c82333; }
-⋮----
-input[type="datetime-local"], input[type="number"] {
-#migraineForm div { margin-bottom: 1em; }
-⋮----
-#migraineList { list-style-type: disc; padding-left: 20px; }
-#migraineList li {
-⋮----
-footer {
-⋮----
-margin-top: auto; /* Pushes footer to bottom */
+gap: 4px; /* Small gap between buttons */
 ⋮----
 /* filename: style.css */
 ```
