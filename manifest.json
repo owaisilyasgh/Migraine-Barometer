@@ -1,10 +1,10 @@
 {
     "name": "Pressure & Migraine Tracker",
     "short_name": "PressureTrack",
-    "description": "Tracks surface pressure and helps correlate migraine events. Uses live location for data.",
+    "description": "Tracks surface pressure, allows migraine logging, and helps correlate events. Uses live location for data if available, otherwise mock data.",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#ffffff",
+    "background_color": "#FFFBFE",
     "theme_color": "#6750A4",
     "icons": [
         {

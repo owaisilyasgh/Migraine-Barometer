@@ -6,7 +6,7 @@ const db = {
      * @param {string} key - The key under which to store the data.
      * @param {any} data - The data to store (will be JSON.stringified).
      */
-    saveData: function(key, data) {
+    saveData(key, data) {
         if (typeof key !== 'string' || key.trim() === '') {
             console.error('Error saving data: Key must be a non-empty string.');
             return;
@@ -15,6 +15,7 @@ const db = {
             localStorage.setItem(key, JSON.stringify(data));
         } catch (error) {
             console.error(`Error saving data for key "${key}":`, error);
+            // Potentially handle quota exceeded errors more gracefully
         }
     },
 
@@ -23,7 +24,7 @@ const db = {
      * @param {string} key - The key for the data to retrieve.
      * @returns {any|null} The parsed data, or null if not found or if parsing fails.
      */
-    loadData: function(key) {
+    loadData(key) {
         if (typeof key !== 'string' || key.trim() === '') {
             console.error('Error loading data: Key must be a non-empty string.');
             return null;
@@ -31,7 +32,7 @@ const db = {
         try {
             const dataString = localStorage.getItem(key);
             if (dataString === null) {
-                return null;
+                return null; // Key not found
             }
             return JSON.parse(dataString);
         } catch (error) {
@@ -44,7 +45,7 @@ const db = {
      * Removes data from localStorage.
      * @param {string} key - The key for the data to remove.
      */
-    removeData: function(key) {
+    removeData(key) {
         if (typeof key !== 'string' || key.trim() === '') {
             console.error('Error removing data: Key must be a non-empty string.');
             return;
@@ -57,4 +58,5 @@ const db = {
     }
 };
 
-export default db; // <<< MAKE ABSOLUTELY SURE THIS LINE IS PRESENT AND CORRECT
+export default db;
+// filename: js/db.js

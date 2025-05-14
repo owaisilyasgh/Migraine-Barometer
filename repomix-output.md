@@ -141,35 +141,55 @@ sw.js
 ```javascript
 // js/app.js
 ⋮----
+import { createRipple } from './utils.js'; // Assuming showNotification is now in UIRenderer
+⋮----
 // Module-level state
 ⋮----
-// Define functions once at the top level of the module scope
+let eventMigraineLogs = {}; // Store migraine logs { eventId: { severity: 'High', loggedAt: timestamp }}
 ⋮----
-function registerServiceWorker() { // Defined ONCE
+function registerServiceWorker() {
 ⋮----
 navigator.serviceWorker.register('./sw.js')
 .then(registration => console.log('SW registered:', registration.scope))
 .catch(error => console.error('SW registration failed:', error));
 ⋮----
-function applyTheme(themeId) { // Defined ONCE
+function applyTheme(themeId) {
 ⋮----
 db.saveData(Config.THEME_STORAGE_KEY, themeId);
+⋮----
 const selectedTheme = Config.THEMES.find(t => t.id === themeId);
+⋮----
+console.error(`Theme with id ${themeId} not found.`);
+UIRenderer.showNotification(`Theme ${themeId} not found. Using default.`, "error");
+if (themeId !== Config.DEFAULT_THEME_ID) { // Avoid infinite loop
+applyTheme(Config.DEFAULT_THEME_ID);
+⋮----
+// Remove old theme script if it exists
 const oldThemeScript = document.getElementById(Config.DYNAMIC_THEME_SCRIPT_ID);
 if (oldThemeScript) oldThemeScript.remove();
 ⋮----
+// Highcharts specific global options (re-apply if theme changes Highcharts vars)
 Highcharts.setOptions(ChartManager.HIGHCHARTS_EXPLICIT_DEFAULT_STYLES);
 Highcharts.setOptions(ChartManager.BASE_HIGHCHARTS_OPTIONS);
+// Apply timezone offset, ensuring it's part of BASE_HIGHCHARTS_OPTIONS
+⋮----
+Highcharts.setOptions({ time: { timezoneOffset: ChartManager.BASE_HIGHCHARTS_OPTIONS.time.timezoneOffset } });
 ⋮----
 const finalizeThemeAndProcessData = () => {
+// Re-initialize chart with current data if it exists
 ⋮----
-ChartManager.destroyChart();
+ChartManager.destroyChart(); // Destroy existing chart instance
 processAndDisplayPressureData(currentPressureHourlyTimes, currentPressureHourlyValues);
 ⋮----
-initiateFreshDataLoad();
+initiateFreshDataLoad(); // Or just try to re-render if data already loaded
 ⋮----
+if (selectedTheme.path) { // If theme has a CSS file to load
 UIRenderer.showNotification(`Loading ${selectedTheme.name} theme...`, "info", 2000);
-const script = document.createElement('script');
+const script = document.createElement('script'); // This was for JS themes, for CSS it's a link
+// Assuming themes are CSS files or JS that applies styles
+// For this example, let's stick to the Highcharts theme logic if it's JS based like in example
+// If it's purely CSS variables, a script might not be needed, just a body class change.
+// The current setup suggests themes are JS files defining Highcharts options.
 ⋮----
 script.onload = () => {
 UIRenderer.showNotification(`${selectedTheme.name} theme applied.`, "success", 1500);
@@ -177,12 +197,13 @@ finalizeThemeAndProcessData();
 ⋮----
 script.onerror = () => {
 UIRenderer.showNotification(`Error loading ${selectedTheme.name}. Reverting to Default.`, "error");
-⋮----
-db.saveData(Config.THEME_STORAGE_KEY, currentThemeId);
+db.saveData(Config.THEME_STORAGE_KEY, Config.DEFAULT_THEME_ID); // Revert stored theme
+if (currentThemeId !== Config.DEFAULT_THEME_ID) applyTheme(Config.DEFAULT_THEME_ID); // Apply default
 ⋮----
 document.head.appendChild(script);
+} else { // For themes that don't load external files (e.g., default, or CSS var only themes)
 ⋮----
-async function fetchPressureDataFromAPI(latitude, longitude) { // Defined ONCE
+async function fetchPressureDataFromAPI(latitude, longitude) {
 const apiUrl = Config.API_URL_TEMPLATE.replace('{LAT}', latitude).replace('{LON}', longitude);
 ⋮----
 const response = await fetch(apiUrl);
@@ -193,7 +214,7 @@ UIRenderer.showNotification("Live pressure data fetched!", "success", 1500);
 console.error('Error fetching live data:', error);
 UIRenderer.showNotification(`Error fetching live data: ${error.message}.`, "error");
 ⋮----
-async function fetchPressureDataFromMock() { // Defined ONCE
+async function fetchPressureDataFromMock() {
 ⋮----
 const response = await fetch(Config.MOCK_DATA_PATH);
 if (!response.ok) throw new Error(`Mock data HTTP error! status: ${response.status}`);
@@ -203,7 +224,7 @@ UIRenderer.showNotification("Mock data loaded.", "success", 1000);
 console.error('Error fetching mock data:', error);
 UIRenderer.showNotification(`Error loading mock data: ${error.message}.`, "error");
 ⋮----
-async function initiateFreshDataLoad() { // Defined ONCE
+async function initiateFreshDataLoad() {
 UIRenderer.showNotification("Fetching latest pressure data...", "info", 2500);
 ⋮----
 let sourceInfo = { type: 'unknown', fetchTimestamp: Date.now() };
@@ -214,35 +235,38 @@ pressureDataJson = await fetchPressureDataFromAPI(sourceInfo.lat, sourceInfo.lon
 ⋮----
 UIRenderer.showNotification(`Geolocation failed: ${geoError.message}. Using default.`, "warning", 4000);
 ⋮----
-UIRenderer.showNotification("Geolocation N/A. Using default.", "warning", 4000);
+// Fallback to default coordinates or mock data
 ⋮----
-UIRenderer.showNotification("Live data failed. Using mock as fallback.", "warning", 3000);
+pressureDataJson = await fetchPressureDataFromMock();
+⋮----
+pressureDataJson = await fetchPressureDataFromAPI(Config.DEFAULT_LATITUDE, Config.DEFAULT_LONGITUDE);
+⋮----
+UIRenderer.showNotification("Geolocation N/A. Using default coords for live data.", "warning", 4000);
+⋮----
+UIRenderer.showNotification("Live data failed or not enabled. Using mock as fallback.", "warning", 3000);
 sourceInfo.type = 'mock-fallback'; pressureDataJson = await fetchPressureDataFromMock();
 ⋮----
 sourceInfo.type = 'mock'; pressureDataJson = await fetchPressureDataFromMock();
 ⋮----
 db.saveData(Config.CACHED_PRESSURE_DATA_KEY, { times: currentPressureHourlyTimes, values: currentPressureHourlyValues, sourceInfo: currentPressureDataSourceInfo });
 ⋮----
-UIRenderer.showNotification("Failed to load any pressure data.", "error");
+UIRenderer.showNotification("Failed to load any pressure data. Check console.", "error");
 ⋮----
-const tableBody = document.getElementById(Config.EVENTS_TABLE_BODY_ID)?.getElementsByTagName('tbody')[0];
-⋮----
-db.removeData(Config.CACHED_PRESSURE_DATA_KEY);
-⋮----
-UIRenderer.updateAutomatedEventActionButtonsState();
-⋮----
-function processAndDisplayPressureData(times, values) { // Defined ONCE
+function processAndDisplayPressureData(times, values) {
 ⋮----
 UIRenderer.showNotification("No data to display.", "error");
 ⋮----
-const chartInstance = ChartManager.initializeChart(times, values, Config.THEMES, currentThemeId, applyTheme);
+ChartManager.initializeChart(times, values, Config.THEMES, currentThemeId, applyTheme);
+currentAutomatedEvents = PressureEventManager.detectAndStoreAutomatedPressureEvents(
 ⋮----
-currentAutomatedEvents = PressureEventManager.detectAndStoreAutomatedPressureEvents(times, values, UIRenderer.showNotification, ChartManager.updateChartPlotBand);
-rerenderAutomatedEventsUI();
+ChartManager.updateChartPlotBand // This is for initial detection, merge/unmerge have their own calls
 ⋮----
-UIRenderer.showNotification("Error initializing chart.", "error");
+rerenderAutomatedEventsUI(); // Render initial table
 ⋮----
-function handleEventMigraineChange(eventId, selectElement) { // Defined ONCE
+console.error("Error processing or displaying pressure data:", error);
+UIRenderer.showNotification("Error initializing chart or processing events.", "error");
+⋮----
+function handleEventMigraineChange(eventId, selectElement) {
 ⋮----
 db.saveData(Config.EVENT_MIGRAINE_LOGS_KEY, eventMigraineLogs);
 UIRenderer.showNotification("Migraine log cleared for event.", "info", 1500);
@@ -251,129 +275,220 @@ eventMigraineLogs[eventId] = { severity: newSeverity, loggedAt: Date.now() };
 ⋮----
 UIRenderer.showNotification(`Migraine as '${newSeverity}' logged for event.`, "success", 1500);
 ⋮----
-function rerenderAutomatedEventsUI() { // Defined ONCE
+// No need to rerender table just for this, select element already updated visually
+⋮----
+function rerenderAutomatedEventsUI() {
 UIRenderer.renderAutomatedEventsTable(
 ⋮----
-function handleAutomatedEventRowClick(eventId, clickedRowElement) { // Defined ONCE
+updateMergeUnmergeButtonStates // Pass the handler from app.js
 ⋮----
-const eventData = allEvents.find(e => e.id === eventId);
+function handleAutomatedEventRowClick(eventId, clickedRowElement) {
 ⋮----
 ChartManager.updateChartPlotBand(null);
 if (clickedRowElement) clickedRowElement.classList.remove('highlighted-automated-event-row');
 ⋮----
+const eventData = currentAutomatedEvents.find(e => e.id === eventId);
 if (eventData) ChartManager.updateChartPlotBand({ startTime: eventData.startTime, endTime: eventData.endTime });
-else ChartManager.updateChartPlotBand(null);
+else ChartManager.updateChartPlotBand(null); // Should not happen if eventId is valid
+⋮----
 document.querySelectorAll(`#${Config.EVENTS_TABLE_BODY_ID} tbody tr.highlighted-automated-event-row`).forEach(row => row.classList.remove('highlighted-automated-event-row'));
 if (clickedRowElement) clickedRowElement.classList.add('highlighted-automated-event-row');
 ⋮----
-function setupEventListeners() { // Defined ONCE
+// This function will be passed to UIRenderer as the onCheckboxChange callback
+function updateMergeUnmergeButtonStates() {
+const tableBody = document.getElementById(Config.EVENTS_TABLE_BODY_ID)?.getElementsByTagName('tbody')[0];
+⋮----
+const selectedCheckboxes = Array.from(tableBody.querySelectorAll('tbody input[type="checkbox"]:checked'));
+⋮----
+const selectedEvent = currentAutomatedEvents.find(event => event.id === selectedEventId);
+⋮----
+UIRenderer.updateAutomatedEventActionButtonsState(numberOfSelected, isSingleSelectedEventMerged);
+⋮----
+function setupEventListeners() {
 const mergeBtn = document.getElementById(Config.MERGE_EVENTS_BTN_ID);
 ⋮----
 mergeBtn.addEventListener('click', createRipple);
 mergeBtn.addEventListener('click', () => {
-if (PressureEventManager.handleMergeAutomatedEvents(() => currentlyHighlightedAutomatedEventId, UIRenderer.showNotification, ChartManager.updateChartPlotBand)) {
+⋮----
+const selectedEventIds = selectedCheckboxes.map(cb => cb.dataset.eventId);
+⋮----
+const result = PressureEventManager.handleMergeAutomatedEvents(
 ⋮----
 currentAutomatedEvents = PressureEventManager.getAllAutomatedEvents();
+⋮----
+// ChartManager.updateChartPlotBand(null); // Already called by PEManager if needed
+⋮----
+// Optional: highlight the new merged event
+// if (result.newMergedEventId) {
+//    currentlyHighlightedAutomatedEventId = result.newMergedEventId;
+//    const newEvent = currentAutomatedEvents.find(e => e.id === result.newMergedEventId);
+//    if (newEvent) ChartManager.updateChartPlotBand({ startTime: newEvent.startTime, endTime: newEvent.endTime });
+// }
+rerenderAutomatedEventsUI(); // This will also call updateMergeUnmergeButtonStates
 ⋮----
 const unmergeBtn = document.getElementById(Config.UNMERGE_EVENT_BTN_ID);
 ⋮----
 unmergeBtn.addEventListener('click', createRipple);
 unmergeBtn.addEventListener('click', () => {
-if (PressureEventManager.handleUnmergeAutomatedEvent(() => currentlyHighlightedAutomatedEventId, UIRenderer.showNotification, ChartManager.updateChartPlotBand)) {
+⋮----
+const selectedCheckbox = tableBody.querySelector('tbody input[type="checkbox"]:checked'); // Should be only one
+⋮----
+const result = PressureEventManager.handleUnmergeAutomatedEvent(
 ⋮----
 // DOMContentLoaded listener is the main entry point
 document.addEventListener('DOMContentLoaded', () => {
-registerServiceWorker(); // Call the single definition
-setupEventListeners(); // Call the single definition
+registerServiceWorker();
+setupEventListeners();
 UIRenderer.setCurrentHighlightHandler(handleAutomatedEventRowClick);
 ⋮----
+// Load initial state
 currentThemeId = db.loadData(Config.THEME_STORAGE_KEY) || Config.DEFAULT_THEME_ID;
 eventMigraineLogs = db.loadData(Config.EVENT_MIGRAINE_LOGS_KEY) || {};
 ⋮----
 const cachedData = db.loadData(Config.CACHED_PRESSURE_DATA_KEY);
 ⋮----
 UIRenderer.showNotification("Displaying cached pressure data.", "info", 2000);
-applyTheme(currentThemeId); // Call the single definition
+applyTheme(currentThemeId); // This will call processAndDisplayPressureData
 ⋮----
-// filename: js/app.js
+db.removeData(Config.CACHED_PRESSURE_DATA_KEY); // Clear potentially stale/incomplete cache
+applyTheme(currentThemeId); // This will call initiateFreshDataLoad if data is empty
+⋮----
+// Initialize button states after first render attempt
+updateMergeUnmergeButtonStates();
 ```
 
 ## File: js/chartManager.js
 ```javascript
 // js/chartManager.js
+import * as Config from './config.js'; // Assuming config.js exports constants like CHART_CONTAINER_ID
+// Module-level variable to hold the chart instance
+⋮----
+const CHART_CONTAINER_ID = Config.CHART_CONTAINER_ID || 'pressureChart'; // Default if not in config
+⋮----
+// Default Highcharts styles that might not be covered by M3 variables directly
+// or need explicit setting for Highcharts structure.
 ⋮----
 backgroundColor: 'var(--m3-surface-container-low, #FFFBFE)', // Use M3 variable with fallback
 ⋮----
-fontSize: '12px' // Base chart font size
+plotBorderColor: 'var(--m3-outline-variant, #C4C6C9)', // For the plot area border
 ⋮----
-colors: ['var(--m3-primary, #6750A4)', 'var(--m3-secondary, #625B71)', 'var(--m3-tertiary, #7D5260)', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'], // M3 primary, secondary, tertiary then defaults
+style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: 'var(--m3-title-medium-font-size, 16px)', fontWeight: 'var(--m3-title-medium-font-weight, 500)' } // M3 Title Medium
 ⋮----
-style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: '16px', fontWeight: '500' } // M3 Title Medium
+style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: 'var(--m3-body-medium-font-size, 14px)' } // M3 Body Medium (often used for subtitles)
 ⋮----
-style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: '14px' } // M3 Title Small
+labels: { style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: 'var(--m3-label-medium-font-size, 12px)' } }, // M3 Label Medium
 ⋮----
-labels: { style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: '12px' } }, // M3 Label Medium
+itemStyle: { color: 'var(--m3-on-surface, #1C1B1F)', cursor: 'pointer', fontSize: 'var(--m3-label-large-font-size, 14px)', fontWeight: 'var(--m3-label-large-font-weight, 500)' }, // M3 Label Large
 ⋮----
-itemStyle: { color: 'var(--m3-on-surface, #1C1B1F)', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }, // M3 Label Large
+backgroundColor: 'rgba(255, 255, 255, 0.85)', // Slight transparency if floating
 ⋮----
-backgroundColor: 'var(--m3-surface-container-highest, #E6E0E9)', // M3 Surface Container Highest
+shadow: false // M3 tends towards flatter component design unless elevated
 ⋮----
-borderRadius: 4, // M3 Extra Small Corner
-style: { color: 'var(--m3-on-surface, #1C1B1F)', fontSize: '12px' } // M3 Body Small
+backgroundColor: 'var(--m3-inverse-surface, #313033)', // M3 Inverse Surface for Tooltips
+⋮----
+style: { color: 'var(--m3-inverse-on-surface, #F4EFF4)', fontSize: 'var(--m3-body-small-font-size, 12px)' } // M3 Body Small
 ⋮----
 dataLabels: { style: { color: 'var(--m3-on-surface, #1C1B1F)', fontSize: '11px', fontWeight: '500', textOutline: 'none' } }, // No text outline for M3
 ⋮----
-fill: 'var(--m3-surface-container-low, #F7F2FA)', // M3 Surface
+enabled: true, // Enable markers by default
+⋮----
+spline: { // Specific to spline type if used
+⋮----
+marker: { enabled: false } // Often markers are off for splines for cleaner look
+⋮----
+area: { // Specific to area type if used
+⋮----
+[0, 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.4)'], // M3 Primary with opacity
+⋮----
+navigation: { // For burger menu (exporting, etc.)
+⋮----
+fill: 'transparent', // Button background
 ⋮----
 menuStyle: { background: 'var(--m3-surface-container-low, #F7F2FA)', border: '1px solid var(--m3-outline, #79747E)', padding: '8px 0' }, // M3 Menu
-menuItemStyle: { background: 'none', color: 'var(--m3-on-surface-variant, #49454F)', padding: '12px 16px', fontSize: '14px' }, // M3 List Item
+menuItemStyle: { background: 'none', color: 'var(--m3-on-surface-variant, #49454F)', padding: '12px 16px', fontSize: 'var(--m3-body-medium-font-size, 14px)' }, // M3 List Item
 menuItemHoverStyle: { background: 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.08)', color: 'var(--m3-on-surface-variant, #49454F)' } // M3 State Layer
+⋮----
+enabled: false // Disable "Highcharts.com" link
+⋮----
+colors: ['var(--m3-primary, #6750A4)', 'var(--m3-secondary, #625B71)', 'var(--m3-tertiary, #7D5260)', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'], // M3 primary, secondary, tertiary then defaults
+⋮----
+// UTC-4 hours (e.g., America/Toronto during EDT)
+// timezoneOffset is in minutes. Positive values are west of UTC.
+// 4 hours * 60 minutes/hour = 240 minutes
+⋮----
+// Highcharts.dateFormat will now respect the global timezoneOffset
+return Highcharts.dateFormat('%e %b, %H:%M', this.value);
+⋮----
+return `<b>${Highcharts.dateFormat('%A, %b %e, %Y, %H:%M', this.x)}</b><br/>Pressure: ${this.y.toFixed(1)} hPa`;
+⋮----
+// Exporting menu configuration
+⋮----
+// Default menuItems - will be overridden in initializeChart if themes are present
+⋮----
+// Default plot options for the series
+⋮----
+duration: 750 // Smooth animation on load/update
 ⋮----
 Highcharts.setOptions(HIGHCHARTS_EXPLICIT_DEFAULT_STYLES); // Apply visual defaults first
 Highcharts.setOptions(BASE_HIGHCHARTS_OPTIONS); // Then apply functional base options
 ⋮----
-export function initializeChart(times, pressures, availableThemes, activeThemeId, onThemeSelectedCallback) {
+export function initializeChart(times, pressures, availableThemes = [], activeThemeId = '', onThemeSelectedCallback = () => {}) {
 const chartContainer = document.getElementById(CHART_CONTAINER_ID);
 ⋮----
 console.error("Chart container div not found:", CHART_CONTAINER_ID);
 ⋮----
-if (pressureChartInstance) pressureChartInstance.destroy();
+pressureChartInstance.destroy();
+⋮----
+console.warn("Minor error destroying previous chart instance:", e);
 ⋮----
 const seriesData = times.map((time, index) => [time * 1000, pressures[index]]);
+⋮----
+// Theme switcher menu items for Highcharts exporting
 const themeMenuItems = availableThemes.map(theme => ({
 ⋮----
-onclick: function () { onThemeSelectedCallback(theme.id); }
+onclick: function () { onThemeSelectedCallback(theme.id); },
 ⋮----
 pressureChartInstance = Highcharts.chart(CHART_CONTAINER_ID, {
-chart: { type: 'spline', zoomType: 'x', events: { load: function() { addCurrentTimePlotLine(this); } } },
+// Base options are now set globally via Highcharts.setOptions(),
+// including the timezoneOffset.
+// We only need to override/add specific things here.
 ⋮----
-xAxis: { type: 'datetime', labels: { formatter: function () { return Highcharts.dateFormat('%e %b, %H:%M', this.value); } }, title: { text: 'Time' } },
-⋮----
-tooltip: { formatter: function () { return `<b>${Highcharts.dateFormat('%A, %b %e, %Y, %H:%M', this.x)}</b><br/>Pressure: ${this.y.toFixed(1)} hPa`; } },
+addCurrentTimePlotLine(this);
+setInterval(() => addCurrentTimePlotLine(this), 60000);
 ⋮----
 console.error("Error initializing Highcharts:", error);
+⋮----
+try { pressureChartInstance.destroy(); } catch (e) { /* ignore */ }
 ⋮----
 export function addCurrentTimePlotLine(chartInstance) {
 ⋮----
 chartInstance.xAxis[0].removePlotLine(CURRENT_TIME_PLOT_LINE_ID);
+⋮----
 const nowMs = new Date().getTime();
 const xAxisExtremes = chartInstance.xAxis[0].getExtremes();
+⋮----
+// Note: nowMs is client's local time. If chart is in a different timezone due to timezoneOffset,
+// this "Now" line will reflect the client's actual current time projected onto the chart's
+// potentially shifted timeline. This is generally the desired behavior for a "Now" marker.
 ⋮----
 chartInstance.xAxis[0].addPlotLine({
 ⋮----
 export function updateChartPlotBand(eventData) {
 ⋮----
+console.warn("Cannot update plot band: Chart instance not available.");
+⋮----
 pressureChartInstance.xAxis[0].removePlotBand(PLOT_BAND_ID);
 ⋮----
 pressureChartInstance.xAxis[0].addPlotBand({
-⋮----
-color: 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.12)', // M3 primary with low opacity
+// Timestamps from eventData are assumed to be UTC epoch seconds,
+// consistent with chart data. Highcharts will handle display
+// according to its timezoneOffset.
 ⋮----
 export function destroyChart() {
 ⋮----
-try { pressureChartInstance.destroy(); } catch (e) { console.error("Error destroying chart:", e); }
+console.error("Error destroying chart:", e);
 ⋮----
-// filename: js/chartManager.js
+export function getChartInstance() {
 ```
 
 ## File: js/config.js
@@ -456,6 +571,11 @@ export default db; // <<< MAKE ABSOLUTELY SURE THIS LINE IS PRESENT AND CORRECT
 ```javascript
 // js/pressureEventManager.js
 ⋮----
+EVENTS_TABLE_BODY_ID // Used for type checking, not direct DOM manipulation here
+⋮----
+let hourlyTimesCache = []; // Stores the 'time' array from pressure data
+let hourlyPressuresCache = []; // Stores the 'surface_pressure' array from pressure data
+⋮----
 // Note: showNotification and updateChartPlotBand will be passed in from app.js
 ⋮----
 /**
@@ -464,6 +584,8 @@ export default db; // <<< MAKE ABSOLUTELY SURE THIS LINE IS PRESENT AND CORRECT
  * @returns {string} The severity score ('Low', 'Medium', 'High').
  */
 function getSeverityScore(absoluteRateOfChange) {
+if (absoluteRateOfChange >= 0.8) return 'High'; // Example threshold
+if (absoluteRateOfChange >= 0.4) return 'Medium'; // Example threshold
 ⋮----
 /**
  * Calculates rate of change and severity for an event object.
@@ -478,16 +600,23 @@ event.severity = getSeverityScore(absoluteRate);
 ⋮----
 export function detectAndStoreAutomatedPressureEvents(times, pressures, showNotification, updateChartPlotBand) {
 allAutomatedEvents = []; // Reset
+hourlyTimesCache = [...times]; // Cache for merge/unmerge operations
+hourlyPressuresCache = [...pressures]; // Cache for merge/unmerge operations
 ⋮----
 console.error("Insufficient or invalid data for event detection in pressureEventManager.");
+showNotification("Error: Cannot detect events due to invalid pressure data.", "error");
+⋮----
+showNotification("Not enough data points to detect pressure events.", "info");
 ⋮----
 let ongoingEventType = null; // 'rise' or 'fall'
 ⋮----
 // Trend changed, finalize previous event if significant
 ⋮----
-const pChange = parseFloat((endP - pressures[eventSegmentStartIdx]).toFixed(1));
+const pChange = parseFloat((endP - startP).toFixed(1));
 ⋮----
 if (durationHrs >= MIN_DURATION_HOURS && Math.abs(pChange) >= MIN_PRESSURE_CHANGE_HPA) {
+⋮----
+id: eventStartTime.toString() + '-' + ongoingEventType, // Simple ID
 ⋮----
 durationHours: parseFloat(durationHrs.toFixed(1)),
 ⋮----
@@ -496,162 +625,208 @@ allAutomatedEvents.push(newEvent);
 ⋮----
 // Start new event segment
 ⋮----
+ongoingEventType = currentTrend === null && ongoingEventType !== null ? ongoingEventType : currentTrend; // Persist trend if current is flat
+if (i === 1 && ongoingEventType === null && pressures[i] !== pressures[0]) { // Handle start
+⋮----
 // Finalize any ongoing event at the end of the data
 ⋮----
+id: eventStartTime.toString() + '-' + ongoingEventType + '-final',
+⋮----
+calculateRateAndSeverity(newEvent);
+⋮----
 allAutomatedEvents.sort((a, b) => a.startTime - b.startTime);
+// console.log("Detected automated events:", allAutomatedEvents);
+⋮----
+showNotification(`${allAutomatedEvents.length} automated pressure events detected.`, "info", 2000);
+⋮----
+showNotification("No significant automated pressure events detected.", "info", 2000);
 ⋮----
 export function getAllAutomatedEvents() {
+return [...allAutomatedEvents]; // Return a copy
 ⋮----
-export function handleMergeAutomatedEvents(getCurrentlyHighlightedEventId, showNotification, updateChartPlotBand) {
-const tableElement = document.getElementById(EVENTS_TABLE_BODY_ID);
+export function handleMergeAutomatedEvents(selectedEventIds, showNotification, updateChartPlotBand, getCurrentlyHighlightedEventId) {
 ⋮----
-const selectedCheckboxes = Array.from(tableElement.querySelectorAll('tbody input[type="checkbox"]:checked'));
-const eventIdsToMerge = selectedCheckboxes.map(cb => cb.dataset.eventId);
+showNotification("Please select at least two automated events to merge.", "error");
 ⋮----
-showNotification("Please select exactly two automated events to merge.", "error");
+.filter(event => selectedEventIds.includes(event.id))
+.sort((a, b) => a.startTime - b.startTime);
 ⋮----
-const eventsToMerge = allAutomatedEvents.filter(event => eventIdsToMerge.includes(event.id));
-if (eventsToMerge.some(e => e.isMerged)) {
-showNotification("Cannot merge: one or more selected events are already merged events.", "error");
+showNotification("Error: Some selected events for merging were not found.", "error");
 ⋮----
-if (eventsToMerge.length !== 2) { // Should be caught by previous check, but good for safety
-showNotification("Error: Could not find two distinct events to merge.", "error");
+if (eventsToMergeDetails.some(e => e.isMerged)) {
+showNotification("Cannot merge: one or more selected events are already merged events. Please unmerge them first if needed.", "error");
 ⋮----
-const [event1, event2] = eventsToMerge.sort((a, b) => a.startTime - b.startTime);
+const mergedId = Date.now().toString() + '-merged';
 ⋮----
-// Clear highlight if one of the merged events was highlighted
-const currentlyHighlightedId = getCurrentlyHighlightedEventId();
-⋮----
-if (eventIdsToMerge.includes(currentlyHighlightedId)) {
-updateChartPlotBand(null);
-highlightNeedsClear = true; // Signal to app.js to clear its state
-⋮----
-const mergedStartTime = event1.startTime; // Since sorted
-const mergedEndTime = event2.endTime;     // Since sorted, event2 is later or same
-⋮----
-const mergedDurHrs = parseFloat((mergedDurSecs / 3600).toFixed(1));
-⋮----
-// Find pressure at start of event1 and end of event2 from cached data
-let mergedStartP = hourlyPressuresCache[hourlyTimesCache.indexOf(event1.startTime)];
-let mergedEndP = hourlyPressuresCache[hourlyTimesCache.indexOf(event2.endTime)];
+const startIdx = hourlyTimesCache.indexOf(mergedStartTime);
+const endIdx = hourlyTimesCache.indexOf(mergedEndTime);
 ⋮----
 mergedPChange = parseFloat((mergedEndP - mergedStartP).toFixed(1));
 ⋮----
-console.warn("Could not find exact start/end pressures for merged event in hourly data. Pressure change might be N/A.");
+console.warn("Could not find exact start/end pressures for merged event in hourly data. Pressure change will be N/A.");
+showNotification("Warning: Pressure values for merged event boundaries not found in source data.", "warning", 4000);
 ⋮----
-type: mergedPChange > 0 ? 'rise' : (mergedPChange < 0 ? 'fall' : 'stable'), // Determine type based on overall change
+const mergedDurHrs = parseFloat((mergedDurSecs / 3600).toFixed(1));
 ⋮----
-originalEventsData: [JSON.parse(JSON.stringify(event1)), JSON.parse(JSON.stringify(event2))]
+const originalEventsData = eventsToMergeDetails.map(e => JSON.parse(JSON.stringify(e))); // Deep copy
 ⋮----
-calculateRateAndSeverity(mergedEvent); // Calculate rate/severity for the new merged event
+calculateRateAndSeverity(mergedEvent);
 ⋮----
-allAutomatedEvents = allAutomatedEvents.filter(event => !eventIdsToMerge.includes(event.id));
+// Update event list
+allAutomatedEvents = allAutomatedEvents.filter(event => !selectedEventIds.includes(event.id));
 allAutomatedEvents.push(mergedEvent);
+⋮----
+// Handle highlight
+const currentlyHighlightedId = getCurrentlyHighlightedEventId();
+if (selectedEventIds.includes(currentlyHighlightedId)) {
+updateChartPlotBand(null); // Clear plot band from chart
+highlightNeedsClear = true; // Signal app.js to clear its state
 ⋮----
 showNotification("Automated events merged successfully!", "success");
 ⋮----
-export function handleUnmergeAutomatedEvent(getCurrentlyHighlightedEventId, showNotification, updateChartPlotBand) {
-⋮----
-showNotification("Please select exactly one merged event to unmerge.", "error");
+export function handleUnmergeAutomatedEvent(eventIdToUnmerge, showNotification, updateChartPlotBand, getCurrentlyHighlightedEventId) {
 ⋮----
 const eventToUnmerge = allAutomatedEvents.find(event => event.id === eventIdToUnmerge);
 ⋮----
+showNotification("Error: Event to unmerge not found.", "error");
+⋮----
 showNotification("Selected event is not a merged event or has no original data to restore.", "error");
 ⋮----
-// Clear highlight if the unmerged event was highlighted
+// Remove the merged event
+allAutomatedEvents = allAutomatedEvents.filter(event => event.id !== eventIdToUnmerge);
+⋮----
+// Add back the original events (deep copies)
+eventToUnmerge.originalEventsData.forEach(originalEvent => {
+allAutomatedEvents.push(JSON.parse(JSON.stringify(originalEvent)));
 ⋮----
 if (getCurrentlyHighlightedEventId() === eventIdToUnmerge) {
 ⋮----
-allAutomatedEvents = allAutomatedEvents.filter(event => event.id !== eventIdToUnmerge);
-eventToUnmerge.originalEventsData.forEach(originalEvent => {
-// Original events already have their rate/severity calculated
-allAutomatedEvents.push(originalEvent);
-⋮----
 showNotification("Event unmerged successfully!", "success");
-⋮----
-// filename: js/pressureEventManager.js
 ```
 
 ## File: js/uiRenderer.js
 ```javascript
 // js/uiRenderer.js
+import { formatUnixTimestamp, createRipple } from './utils.js'; // Assuming utils.js exports these
+⋮----
+NOTIFICATION_AREA_ID // Added NOTIFICATION_AREA_ID to imports
+⋮----
+let currentOnRowClickHandler = null; // Store the handler for row clicks
 ⋮----
 export function setCurrentHighlightHandler(handler) {
 ⋮----
 export function renderAutomatedEventsTable(
 ⋮----
-currentEventMigraineLogs, // New: Pass all current logs
-onEventMigraineChangeAppCallback // New: Callback to app.js for select change
+currentEventMigraineLogs, // Pass all current logs
+onEventMigraineChangeAppCallback, // Callback to app.js for select change
+onCheckboxChangeAppCallback // Callback to app.js for checkbox state change
 ⋮----
 const tableElement = document.getElementById(EVENTS_TABLE_BODY_ID);
 ⋮----
+console.error("Events table element not found:", EVENTS_TABLE_BODY_ID);
+⋮----
 const tableBody = tableElement.getElementsByTagName('tbody')[0];
+⋮----
+console.error("Events table body (tbody) not found.");
+⋮----
+tableBody.innerHTML = ''; // Clear existing rows
 ⋮----
 const row = tableBody.insertRow();
 const cell = row.insertCell();
 cell.colSpan = 9; // Adjusted for new column count
 ⋮----
-updateAutomatedEventActionButtonsState(onCheckboxChangeHandler);
-⋮----
 eventsToRender.forEach(event => {
 ⋮----
-row.addEventListener('click', (e) => {
-// Prevent row click if interacting with checkbox or the new select dropdown
+row.classList.add('merged-event-row'); // Optional: for styling merged rows
 ⋮----
-if (onRowClickHandler) onRowClickHandler(event.id, row);
+// Click handler for highlighting, excluding checkbox and select
+row.addEventListener('click', (e) => {
+⋮----
+if (currentOnRowClickHandler) currentOnRowClickHandler(event.id, row);
 ⋮----
 const cellSelect = row.insertCell();
 const checkbox = document.createElement('input');
 ⋮----
-checkbox.addEventListener('change', () => onCheckboxChangeHandler());
+checkbox.classList.add('m3-table-checkbox'); // For M3 styling if needed
+checkbox.addEventListener('change', () => onCheckboxChangeAppCallback()); // Notify app.js
 cellSelect.appendChild(checkbox);
 ⋮----
-row.insertCell().textContent = formatUnixTimestamp(event.startTime); // Uses updated format
-row.insertCell().textContent = formatUnixTimestamp(event.endTime);   // Uses updated format
+row.insertCell().textContent = formatUnixTimestamp(event.startTime);
+row.insertCell().textContent = formatUnixTimestamp(event.endTime);
 row.insertCell().textContent = event.durationHours.toFixed(1);
 row.insertCell().textContent = typeof event.pressureChange === 'number' ? event.pressureChange.toFixed(1) : 'N/A';
 ⋮----
-// Capitalize Type
-let typeDisplay = event.type.charAt(0).toUpperCase() + event.type.slice(1);
+let typeDisplay = event.type ? event.type.charAt(0).toUpperCase() + event.type.slice(1) : 'N/A';
 ⋮----
 row.insertCell().textContent = typeDisplay;
 ⋮----
 row.insertCell().textContent = (typeof event.rateOfChange === 'number') ? event.rateOfChange.toFixed(2) : 'N/A';
 const severityCell = row.insertCell();
 ⋮----
-severityCell.classList.add(`severity-${(event.severity || 'na').toLowerCase()}`);
+severityCell.classList.add(`severity-${(event.severity).toLowerCase()}`);
 ⋮----
 // Migraine Log Dropdown Cell
 const migraineLogCell = row.insertCell();
 migraineLogCell.classList.add('migraine-log-cell');
 const selectMigraine = document.createElement('select');
-selectMigraine.classList.add('m3-table-select'); // For potential M3 select styling
+selectMigraine.classList.add('m3-table-select');
+selectMigraine.dataset.eventId = event.id; // For easy access
 ⋮----
-// Default "None" or placeholder option
 const defaultOption = document.createElement('option');
-defaultOption.value = "none"; // Or ""
 ⋮----
 selectMigraine.appendChild(defaultOption);
 ⋮----
 MIGRAINE_SEVERITIES.forEach(severity => {
 const option = document.createElement('option');
+option.value = severity.toLowerCase();
 ⋮----
 selectMigraine.appendChild(option);
 ⋮----
-// Set selected value based on current logs
+selectMigraine.value = loggedMigraine.severity.toLowerCase();
 ⋮----
 selectMigraine.addEventListener('change', (e) => {
-⋮----
-onEventMigraineChangeAppCallback(event.id, e.target); // Pass eventId and the select element
+onEventMigraineChangeAppCallback(event.id, e.target);
 ⋮----
 migraineLogCell.appendChild(selectMigraine);
 ⋮----
+// Highlight if current or selected
 const nowUnix = Math.floor(Date.now() / 1000);
-if (nowUnix >= event.startTime && nowUnix <= event.endTime) row.classList.add('current-event');
+if (nowUnix >= event.startTime && nowUnix <= event.endTime && !event.isMerged) row.classList.add('current-event');
 if (event.id === currentlyHighlightedEventId) row.classList.add('highlighted-automated-event-row');
 ⋮----
-export function updateAutomatedEventActionButtonsState() { /* ... (no changes) ... */ }
-// filename: js/uiRenderer.js
+// Initial call to set button states based on rendered table (likely no checkboxes checked yet)
+onCheckboxChangeAppCallback();
+⋮----
+export function updateAutomatedEventActionButtonsState(numberOfSelectedItems, isSingleSelectedEventAMergedOne) {
+const mergeBtn = document.getElementById(MERGE_EVENTS_BTN_ID);
+const unmergeBtn = document.getElementById(UNMERGE_EVENT_BTN_ID);
+⋮----
+mergeBtn.textContent = 'Merge Selected'; // Simplified text
+⋮----
+console.warn(`Button with ID ${MERGE_EVENTS_BTN_ID} not found.`);
+⋮----
+console.warn(`Button with ID ${UNMERGE_EVENT_BTN_ID} not found.`);
+⋮----
+// Notification function, can be moved to utils if not already there and just imported
+export function showNotification(message, type = 'info', duration = 3000) {
+// Corrected to use imported NOTIFICATION_AREA_ID directly
+const notificationArea = document.getElementById(NOTIFICATION_AREA_ID || 'notification-area');
+⋮----
+console.warn('Notification area not found in DOM for message:', message);
+⋮----
+const notification = document.createElement('div');
+notification.classList.add('m3-notification', type); // Ensure 'm3-notification' is a base class
+⋮----
+notificationArea.appendChild(notification);
+// Trigger animation
+requestAnimationFrame(() => {
+notification.classList.add('show');
+⋮----
+setTimeout(() => {
+notification.classList.remove('show');
+notification.addEventListener('transitionend', () => {
+if (notification.parentElement === notificationArea) { // Check if still child
+notificationArea.removeChild(notification);
 ```
 
 ## File: js/utils.js
@@ -715,7 +890,7 @@ button.appendChild(ripple);
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#317EFB",
+    "theme_color": "#6750A4",
     "icons": [
         {
             "src": "icons/icon-192x192.png",
@@ -1244,96 +1419,288 @@ This app can be deployed on platforms like GitHub Pages or any static site hosti
 /* M3 Color Palette (Light Theme - Primary Purple) */
 :root {
 ⋮----
+/* Primary */
+⋮----
 --m3-primary-rgb: 103, 80, 164; /* For RGBA usage */
+⋮----
+/* Secondary */
+⋮----
+/* Tertiary */
+⋮----
+/* Error */
+⋮----
+/* Surface */
+⋮----
+--m3-on-surface-rgb: 28, 27, 31; /* For RGBA usage */
+⋮----
+--m3-on-surface-variant-rgb: 73, 69, 79; /* For RGBA usage with select arrow */
+⋮----
+/* Inverse Surface (for snackbars, etc.) */
+⋮----
+/* Outline */
+⋮----
+/* Scrim */
+⋮----
+/* Shadow */
 ⋮----
 /* Typography */
 ⋮----
+/* M3 Type Scale reference (use these for consistency) */
+/* Display */
+⋮----
+/* Headline */
+⋮----
+/* Title */
+⋮----
+--m3-title-large-font-weight: 500; /* Note: M3 uses 400 for Title Large, but 500 is common for emphasis */
+⋮----
+/* Label */
+⋮----
+/* Body */
+⋮----
+--m3-body-large-letter-spacing: 0.5px; /* Or 0.15px if less spacing is desired */
+⋮----
 /* Shape */
 ⋮----
-/* Elevation */
+--m3-shape-corner-full: 50%; /* Or large value like 999px for pills */
+⋮----
+/* Elevation - using simplified box-shadows for web */
 ⋮----
 /* Global M3 Body Styles */
 .m3-body {
 ⋮----
 /* Top App Bar */
 .m3-top-app-bar {
+⋮----
+background-color: var(--m3-surface-container-low); /* Or var(--m3-primary) for colored bar */
+color: var(--m3-on-surface-variant); /* Or var(--m3-on-primary) if colored */
+padding: 8px 16px; /* M3 Compact Top App Bar often uses 64px height, centered title */
+⋮----
+box-shadow: var(--m3-elevation-0); /* Typically no shadow if content scrolls under */
+⋮----
 .m3-top-app-bar__title {
 ⋮----
 /* Main Content Area */
 .m3-main-content {
 ⋮----
+gap: 24px; /* Spacing between sections/cards */
+⋮----
 /* Card Styles */
 .m3-card {
+⋮----
+border-radius: var(--m3-shape-corner-md); /* 12px */
+⋮----
+overflow: hidden; /* If content might overflow rounded corners */
+⋮----
 .m3-card__title {
-/* .m3-card__content { } // Removed empty ruleset */
+⋮----
+margin-top: 0; /* Remove default h2 margin if needed */
+margin-bottom: 16px; /* Space below title */
 ⋮----
 /* Button Styles */
 .m3-button {
+⋮----
+padding: 10px 24px; /* M3 Buttons Height 40dp */
+border-radius: var(--m3-shape-corner-full); /* Pill shape */
+⋮----
+display: inline-flex; /* For icon alignment if any */
+⋮----
+position: relative; /* For ripple */
+overflow: hidden; /* For ripple */
+⋮----
+/* General cursor for all disabled buttons */
 .m3-button:disabled, .m3-button[disabled] {
+⋮----
+box-shadow: none !important; /* Remove any active/hover shadows */
+⋮----
+/* Filled Button */
 .m3-button-filled {
 .m3-button-filled:not(:disabled):hover {
+⋮----
+background-color: color-mix(in srgb, var(--m3-primary) 92%, var(--m3-on-primary) 8%); /* M3 Hover state layer */
+⋮----
+.m3-button-filled:disabled,
+.m3-button-filled:disabled:hover,
+⋮----
+background-color: rgba(var(--m3-on-surface-rgb), 0.12); /* No change on hover when disabled */
+⋮----
+/* Outlined Button */
 .m3-button-outlined {
+⋮----
+padding: 10px 23px; /* Adjust padding because of border */
+⋮----
 .m3-button-outlined:not(:disabled):hover {
+⋮----
+background-color: rgba(var(--m3-primary-rgb), 0.08); /* M3 Hover state layer for outlined */
+⋮----
+.m3-button-outlined:disabled,
+.m3-button-outlined:disabled:hover,
+⋮----
+background-color: transparent; /* No change on hover when disabled */
+⋮----
+/* Text Button */
 .m3-button-text {
+⋮----
+padding: 10px 12px; /* Text buttons have less horizontal padding */
+⋮----
 .m3-button-text:not(:disabled):hover {
+⋮----
+background-color: rgba(var(--m3-primary-rgb), 0.08); /* M3 Hover state layer for text */
+⋮----
+.m3-button-text:disabled,
+.m3-button-text:disabled:hover,
+⋮----
 .m3-button-group {
+⋮----
+gap: 8px; /* Spacing between buttons in a group */
 ⋮----
 /* Ripple Effect */
 .m3-ripple {
 ⋮----
+background-color: currentColor; /* Use button's text color for ripple */
+opacity: 0.2; /* Ripple opacity */
+⋮----
 /* Table Styles */
 .m3-table-container {
+⋮----
+overflow-x: auto; /* Allow horizontal scrolling for tables on small screens */
+⋮----
 .m3-table {
+⋮----
+background-color: var(--m3-surface-container-lowest); /* Or --m3-surface */
+⋮----
 .m3-table th, .m3-table td {
+⋮----
+padding: 12px 16px; /* M3 Table Cell Padding */
+⋮----
 .m3-table th {
+⋮----
+font-weight: var(--m3-label-large-font-weight); /* M3 uses Body Medium or Label Large for headers */
+⋮----
+background-color: var(--m3-surface-container-low); /* Slight distinction for header */
+border-bottom: 1px solid var(--m3-outline); /* Stronger line under header */
+⋮----
 .m3-table td {
-.m3-table tbody tr:hover td {
+⋮----
+.m3-table tbody tr:last-child td {
+⋮----
+border-bottom: none; /* Remove border from last row */
+⋮----
+.m3-table tbody tr:hover td { /* M3 Row Hover State */
+⋮----
+background-color: rgba(var(--m3-on-surface-rgb), 0.04); /* On Surface with 4% opacity */
+⋮----
 .m3-table td input[type="checkbox"] {
+⋮----
+accent-color: var(--m3-primary); /* Style checkbox color */
+⋮----
 .m3-table .severity-low { color: var(--m3-primary); }
-.m3-table .severity-medium { color: #FF8C00; }
+.m3-table .severity-medium { color: #FF8C00; } /* Consider using a semantic M3 color if available */
 .m3-table .severity-high { color: var(--m3-error); }
 ⋮----
 /* Migraine Log Elements in Table */
-.migraine-log-cell { white-space: nowrap; }
+.migraine-log-cell {
+⋮----
 .migraine-log-cell .m3-button, .migraine-log-cell .m3-table-select {
+⋮----
+margin: 0; /* Remove default margins if any */
+height: 36px; /* Slightly smaller for table context */
+⋮----
 .migraine-log-cell .m3-button.danger-btn {
 .migraine-log-cell .m3-button.danger-btn:not(:disabled):hover {
+⋮----
 .m3-table-select {
+⋮----
+border-radius: var(--m3-shape-corner-xs); /* 4px */
+padding: 8px 32px 8px 12px; /* Right padding for arrow */
+font-size: var(--m3-body-medium-font-size); /* 14px */
+⋮----
+/* SVG arrow, color uses --m3-on-surface-variant. Hex: #49454F, URL-encoded: %2349454F */
+⋮----
+min-width: 120px; /* Ensure it's not too small */
+⋮----
+height: 40px; /* Consistent height */
+line-height: normal; /* Reset line-height that might be inherited */
+⋮----
+.m3-table-select:focus {
+⋮----
+outline: 2px solid transparent; /* Remove default, could add M3 focus ring if complex */
+box-shadow: 0 0 0 2px var(--m3-primary); /* Simple focus ring */
+⋮----
+.m3-table-select option {
+⋮----
+background-color: var(--m3-surface-container-lowest); /* Or another appropriate M3 surface for dropdown menu */
 ⋮----
 /* Notification Area (Snackbar Container) */
 .m3-snackbar-container {
+⋮----
+bottom: 16px; /* M3 recommends 8dp from edge, but more can be acceptable */
+⋮----
+gap: 8px; /* Spacing between multiple snackbars */
+width: fit-content; /* Ensure it doesn't stretch full width unnecessarily */
+⋮----
 .m3-notification {
-.m3-notification.show { opacity: 1; transform: translateY(0) scale(1); }
-.m3-notification.success { background-color: #4CAF50; color: white; }
+⋮----
+min-width: 288px; /* M3 min width */
+max-width: 568px; /* M3 max width */
+margin-top: 8px; /* Only if multiple, else handled by gap in container */
+⋮----
+pointer-events: none; /* Initially not interactive */
+⋮----
+.m3-notification.show {
+⋮----
+pointer-events: auto; /* Interactive when shown */
+⋮----
+.m3-notification.success { background-color: #4CAF50; color: white; } /* Custom, consider M3 semantic colors if available */
 .m3-notification.error { background-color: var(--m3-error); color: var(--m3-on-error); }
-.m3-notification.info { background-color: #2196F3; color: white; }
-.m3-notification.warning { background-color: #FF9800; color: white; }
+.m3-notification.info { background-color: #2196F3; color: white; } /* Custom */
+.m3-notification.warning { background-color: #FF9800; color: black; } /* Custom, ensure contrast */
 ⋮----
 /* Footer */
 .m3-footer {
+⋮----
+margin-top: auto; /* Pushes footer to bottom if main content is short */
 ⋮----
 /* Highcharts specific overrides for M3 */
 .highcharts-title, .highcharts-subtitle, .highcharts-axis-title, .highcharts-axis-labels, .highcharts-legend-item text, .highcharts-tooltip text {
 .highcharts-credits { display: none !important; }
 ⋮----
+/* Chart Container */
 .chart-container {
 ⋮----
-/* Basic styles for the old form (now just a message) */
-/* Removed #migraine-log-form-section p {} empty ruleset */
+height: 400px; /* Or as needed */
 ⋮----
-/* Reset old generic styles as they are now handled by .m3-* classes */
-/* Removed empty ruleset for header, main, section, etc. */
-/* Removed empty ruleset for button, .delete-event-btn, .confirm-delete-btn */
+overflow: hidden; /* Ensure chart respects border radius */
 ⋮----
-/* Old table row highlighting (ensure M3 style takes precedence or adapt) */
-#pressureEventsTable tbody tr.highlighted-automated-event-row td {
+.large-chart-container { height: 390px; } /* If you need a larger default for main chart */
+⋮----
+/* Styles for automated event controls */
+.automated-events-controls {
+⋮----
+margin-bottom: 16px; /* Space between controls and table */
+⋮----
+/* Table row highlighting */
+#pressureEventsTable tbody tr.highlighted-automated-event-row {
+⋮----
+background-color: rgba(var(--m3-primary-rgb), 0.12) !important; /* M3 Selected state layer (Primary with 12% opacity), use !important to override hover if necessary */
+⋮----
+/* Ensure normal hover is less prominent than selection */
+#pressureEventsTable tbody tr:not(.highlighted-automated-event-row):hover td {
+⋮----
 #pressureEventsTable tbody tr.current-event td {
+⋮----
+/* Example: A subtle indicator for current events */
+/* You could add a border, a dot, or slightly different background */
+/* box-shadow: inset 3px 0 0 var(--m3-secondary); */ /* Example: inner left border */
+font-weight: 500; /* Make text slightly bolder */
 ⋮----
 .migraine-log-cell > div { /* For the button container generated in app.js */
 ⋮----
 gap: 4px; /* Small gap between buttons */
 ⋮----
-/* filename: style.css */
+/* Ensure HTML and BODY take full height for footer behavior */
+html, body {
+body > .m3-main-content {
 ```
 
 ## File: sw.js

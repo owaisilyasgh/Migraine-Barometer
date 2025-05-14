@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PressureTrack">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png"> <!-- Assuming you will add this icon -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -37,8 +37,9 @@
             <h2 class="m3-card__title">Detected Pressure Events (Automated)</h2>
             <div class="m3-card__content">
                 <div class="automated-events-controls m3-button-group">
-                    <button id="mergeAutomatedEventsBtn" class="m3-button m3-button-outlined" disabled>Merge Selected (2)</button>
-                    <button id="unmergeAutomatedEventBtn" class="m3-button m3-button-outlined" disabled>Unmerge Selected (1)</button>
+                    <button id="mergeAutomatedEventsBtn" class="m3-button m3-button-outlined" disabled>Merge Selected</button>
+                    <button id="unmergeAutomatedEventBtn" class="m3-button m3-button-outlined" disabled>Unmerge Selected</button>
+                    <button id="showAllEventsBtn" class="m3-button m3-button-outlined">Show All on Chart</button>
                 </div>
                 <div class="m3-table-container">
                     <table id="pressureEventsTable" class="m3-table">
@@ -52,16 +53,14 @@
                                 <th>Type</th>
                                 <th>Rate (hPa/hr)</th>
                                 <th>Severity</th>
-                                <th>Migraine Log</th>
+                                <th>Migraine Severity</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody id="pressureEventsTableBody"></tbody>
                     </table>
                 </div>
             </div>
         </section>
-
-
     </main>
 
     <footer class="m3-footer">
