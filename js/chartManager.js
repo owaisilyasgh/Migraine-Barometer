@@ -1,116 +1,167 @@
 // js/chartManager.js
 import * as Config from './config.js';
-import * as UIRenderer from './uiRenderer.js'; 
+import * as UIRenderer from './uiRenderer.js';
 
 let pressureChartInstance = null;
 
 export const HIGHCHARTS_EXPLICIT_DEFAULT_STYLES = {
-    chart: {
-        backgroundColor: 'var(--m3-surface-container-low, #FFFBFE)', 
-        style: { fontFamily: 'var(--m3-font-family-plain, sans-serif)' },
-        plotBorderColor: 'var(--m3-outline-variant, #C4C6C9)', 
-    },
-    title: {
-        text: null // Remove chart title
-    },
-    subtitle: {
-        // text: null // Also remove subtitle if not needed, or keep for other info
-        style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: 'var(--m3-body-medium-font-size, 14px)' } 
-    },
-    xAxis: {
-        labels: { style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: 'var(--m3-label-medium-font-size, 12px)' } }, 
-        lineColor: 'var(--m3-outline-variant, #C4C6C9)',
-        tickColor: 'var(--m3-outline-variant, #C4C6C9)',
-        title: { style: { color: 'var(--m3-on-surface-variant, #49454F)' } }
-    },
-    yAxis: { 
-        labels: { style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: 'var(--m3-label-medium-font-size, 12px)' } }, 
-        gridLineColor: 'var(--m3-outline-variant, #E0E0E0)', 
-        title: { style: { color: 'var(--m3-on-surface-variant, #49454F)', fontSize: 'var(--m3-label-large-font-size, 14px)' } }
-    },
-    legend: {
-        enabled: false // Remove legend
-    },
-    tooltip: {
-        backgroundColor: 'var(--m3-inverse-surface, #313033)', 
-        borderColor: 'var(--m3-outline, #79747E)',
-        style: { color: 'var(--m3-inverse-on-surface, #F4EFF4)', fontSize: 'var(--m3-body-small-font-size, 12px)' } 
-    },
-    plotOptions: {
-        series: {
-            dataLabels: { style: { color: 'var(--m3-on-surface, #1C1B1F)', fontSize: '11px', fontWeight: '500', textOutline: 'none' } }, 
-            marker: {
-                enabled: true, 
-                radius: 3,
-                states: { hover: { enabled: true, radius: 5 } }
-            }
-        },
-        spline: { marker: { enabled: false } },
-        area: {
-            fillColor: {
-                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-                stops: [
-                    [0, 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.4)'], 
-                    [1, 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.05)']
-                ]
-            },
-            marker: { enabled: false },
-            lineWidth: 2,
-            lineColor: 'var(--m3-primary, #6750A4)'
-        }
-    },
-    navigation: { 
-        buttonOptions: {
-            symbolStroke: 'var(--m3-on-surface-variant, #49454F)',
-            theme: { fill: 'transparent' } 
-        },
-        menuStyle: { background: 'var(--m3-surface-container-low, #F7F2FA)', border: '1px solid var(--m3-outline, #79747E)', padding: '8px 0' }, 
-        menuItemStyle: { background: 'none', color: 'var(--m3-on-surface-variant, #49454F)', padding: '12px 16px', fontSize: 'var(--m3-body-medium-font-size, 14px)' }, 
-        menuItemHoverStyle: { background: 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.08)', color: 'var(--m3-on-surface-variant, #49454F)' } 
-    },
-    credits: { enabled: false }, 
-    colors: ['var(--m3-primary, #6750A4)', 'var(--m3-secondary, #625B71)', 'var(--m3-tertiary, #7D5260)', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'], 
+    // Typically empty
 };
 
 export const BASE_HIGHCHARTS_OPTIONS = {
-    time: {
-        useUTC: false, 
+    accessibility: { enabled: true },
+    credits: { enabled: false },
+    time: { useUTC: false },
+    chart: {
+        type: 'areaspline',
+        zooming: { mouseWheel: { enabled: true }, type: 'x' },
+        panning: { enabled: true, type: 'x' },
+        panKey: 'shift',
+        backgroundColor: 'transparent',
+        style: { fontFamily: 'var(--m3-font-family-plain, sans-serif)' },
+        events: {
+            load: function () {
+                setTimeout(() => addCurrentTimePlotLine(this), 100);
+                this.customUpdateInterval = setInterval(() => {
+                    if (this.series && this.series.length > 0) {
+                        addCurrentTimePlotLine(this);
+                    }
+                }, 60 * 1000);
+            },
+            redraw: function() {
+                setTimeout(() => addCurrentTimePlotLine(this), 50);
+            }
+        }
     },
+    title: { text: null },
     xAxis: {
         type: 'datetime',
         labels: {
             formatter: function () {
-                return Highcharts.dateFormat('%e %b, %H:%M', this.value);
+                const tickDate = new Date(this.value);
+                const hours = tickDate.getHours();
+                const minutes = tickDate.getMinutes();
+                if (hours === 0 && minutes === 0) {
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    const month = monthNames[tickDate.getMonth()];
+                    const day = tickDate.getDate();
+                    return `${month} ${day}`;
+                } else {
+                    let h = hours;
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    h = h % 12;
+                    h = h ? h : 12;
+                    return `${h} ${ampm}`;
+                }
+            },
+            style: {
+                color: 'var(--m3-on-surface-variant)',
+                fontSize: '10px' // << MODIFIED FONT SIZE
             }
         },
-        title: { text: 'Time' }
+        tickPositioner: function (min, max) {
+            if (!this.series || !this.series[0] || typeof this.series[0].dataMin !== 'number' || typeof this.series[0].dataMax !== 'number') {
+                return this.hcPos;
+            }
+            const dataMin = this.series[0].dataMin;
+            const dataMax = this.series[0].dataMax;
+            const threeHoursInMillis = 3 * 3600 * 1000;
+            const positions = [];
+            if ((dataMax - dataMin) < 1.5 * threeHoursInMillis) {
+                 return this.hcPos;
+            }
+            let currentTickTime = new Date(dataMin);
+            currentTickTime.setMinutes(0, 0, 0);
+            currentTickTime.setHours(Math.floor(currentTickTime.getHours() / 3) * 3);
+            while (currentTickTime.getTime() <= dataMax + threeHoursInMillis) {
+                if (currentTickTime.getTime() >= dataMin - threeHoursInMillis) {
+                    positions.push(currentTickTime.getTime());
+                }
+                currentTickTime.setTime(currentTickTime.getTime() + threeHoursInMillis);
+            }
+            const filteredPositions = positions.filter(p => p >= min && p <= max);
+            if (filteredPositions.length < 2 && positions.length >=2) {
+                 const reasonablySpacedOriginal = positions.filter(p => p >= dataMin && p <= dataMax);
+                 if (reasonablySpacedOriginal.length >= 2) return reasonablySpacedOriginal;
+                 return this.hcPos;
+            }
+            if (filteredPositions.length < 2) {
+                 return this.hcPos;
+            }
+            return filteredPositions;
+        },
+        lineColor: 'var(--m3-outline-variant)',
+        tickColor: 'var(--m3-outline-variant)'
     },
-    yAxis: { 
-        title: { text: 'Surface Pressure (hPa)' }
+    yAxis: {
+        title: { text: 'Surface Pressure (hPa)', style: { color: 'var(--m3-on-surface-variant)'} },
+        labels: {
+            style: {
+                color: 'var(--m3-on-surface-variant)',
+                fontSize: '10px' // << MODIFIED FONT SIZE
+            }
+        },
+        gridLineColor: 'var(--m3-outline-variant)',
+        gridLineDashStyle: 'longdash',
+        opposite: false
     },
     tooltip: {
-        xDateFormat: '%A, %b %e, %Y, %H:%M',
-        pointFormatter: function () {
-            return `Pressure: <b>${this.y.toFixed(1)} hPa</b>`;
-        },
-        shared: true, 
-        split: false 
+        shared: true,
+        useHTML: true,
+        formatter: function() {
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const localDate = new Date(this.x);
+            const dayName = dayNames[localDate.getDay()];
+            const dayOfMonth = localDate.getDate();
+            const monthName = monthNames[localDate.getMonth()];
+            let hours = localDate.getHours();
+            const minutes = localDate.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const formattedHours = String(hours);
+            const formattedMinutes = String(minutes).padStart(2, '0');
+            let s = `<div>${dayName}, ${monthName} ${dayOfMonth}    ${formattedHours}:${formattedMinutes} ${ampm}</div>`;
+            s += '<table>';
+            this.points.forEach(point => {
+                s += `<tr><td class="tooltip-series-name">${point.series.name}:</td>` +
+                     `<td style="text-align: right"><b>${point.y.toFixed(1)} hPa</b></td></tr>`;
+            });
+            s += '</table>';
+            return s;
+        }
     },
-    exporting: {
-        buttons: { contextButton: { menuItems: [] } }
-    },
+    legend: { enabled: false },
     plotOptions: {
         series: {
-            animation: { duration: 750 }, 
-            turboThreshold: 5000 
+            animation: { duration: 750 },
+            marker: {
+                enabled: true,
+                radius: 2.5,
+                states: { hover: { enabled: true, radius: 4.5 } }
+            },
+            states: { hover: { lineWidthPlus: 0 } },
+            lineWidth: 2,
+        },
+        areaspline: {
+            fillColor: {
+                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                stops: [
+                    [0, Highcharts.color(Config.CHART_AREA_FILL_GRADIENT_START_COLOR).setOpacity(0.4).get('rgba')],
+                    [1, Highcharts.color(Config.CHART_AREA_FILL_GRADIENT_START_COLOR).setOpacity(0).get('rgba')]
+                ]
+            },
+            lineWidth: 2,
+            states: { hover: { lineWidth: 2 } },
+            threshold: null
         }
-    }
+    },
+    exporting: { enabled: false }
 };
 
-Highcharts.setOptions(HIGHCHARTS_EXPLICIT_DEFAULT_STYLES); 
-Highcharts.setOptions(BASE_HIGHCHARTS_OPTIONS); 
 
-export function initializeChart(times, pressures, availableThemes = [], activeThemeId = '', onThemeSelectedCallback = () => {}) {
+export function initializeChart(times, pressures) {
     const chartContainer = document.getElementById(Config.CHART_CONTAINER_ID);
     if (!chartContainer) {
         console.error("Chart container div not found:", Config.CHART_CONTAINER_ID);
@@ -119,116 +170,96 @@ export function initializeChart(times, pressures, availableThemes = [], activeTh
     }
 
     if (pressureChartInstance) {
-        try {
-            pressureChartInstance.destroy();
-        } catch (e) {
-            console.warn("Minor error destroying previous chart instance:", e);
-        }
-        pressureChartInstance = null;
+        destroyChart();
     }
 
-    const seriesData = times.map((time, index) => [time * 1000, pressures[index]]); 
+    if (!times || !pressures || times.length === 0 || pressures.length === 0) {
+        console.log("initializeChart: No data provided. Chart will not be created.");
+        return;
+    }
 
-    let yAxisMin = undefined;
-    let yAxisMax = undefined;
+    const seriesData = times.map((time, index) => [time * 1000, pressures[index]]);
+    let yAxisMin, yAxisMax;
 
-    if (pressures && pressures.length > 0) {
+    if (pressures.length > 0) {
         const minPressure = Math.min(...pressures);
         const maxPressure = Math.max(...pressures);
         const padding = Config.CHART_Y_AXIS_PADDING;
-
-        yAxisMin = Math.floor(minPressure - padding);
-        yAxisMax = Math.ceil(maxPressure + padding);
-
-        if (yAxisMax - yAxisMin < (padding * 2) ) { 
-            yAxisMin = Math.floor(minPressure - Math.max(padding, 1)); 
-            yAxisMax = Math.ceil(maxPressure + Math.max(padding, 1)); 
-        }
-        if (yAxisMin === yAxisMax) { 
-            yAxisMin -= 1;
-            yAxisMax += 1;
+        if (maxPressure - minPressure < padding * 2 && pressures.length > 1) {
+            yAxisMin = Math.floor(minPressure - Math.max(padding / 2, 0.5));
+            yAxisMax = Math.ceil(maxPressure + Math.max(padding / 2, 0.5));
+        } else if (pressures.length === 1) {
+            yAxisMin = Math.floor(minPressure - padding);
+            yAxisMax = Math.ceil(maxPressure + padding);
+        } else {
+            yAxisMin = Math.floor(minPressure - padding);
+            yAxisMax = Math.ceil(maxPressure + padding);
         }
     }
 
-    const themeMenuItems = availableThemes.map(theme => ({
-        text: `${theme.id === activeThemeId ? '✓ ' : ''}${theme.name}`,
-        onclick: function () { onThemeSelectedCallback(theme.id); },
-        style: theme.id === activeThemeId ? { fontWeight: 'bold' } : {}
-    }));
-    themeMenuItems.push({ separator: true }); 
-
-    try {
-        pressureChartInstance = Highcharts.chart(Config.CHART_CONTAINER_ID, {
-            // title is now null and legend enabled: false via Highcharts.setOptions above
+    const finalChartOptions = Highcharts.merge(
+        {},
+        HIGHCHARTS_EXPLICIT_DEFAULT_STYLES,
+        BASE_HIGHCHARTS_OPTIONS,
+        {
+            xAxis: {
+                min: seriesData.length > 0 ? seriesData[0][0] : null,
+                max: seriesData.length > 0 ? seriesData[seriesData.length - 1][0] : null,
+            },
             yAxis: {
                 min: yAxisMin,
-                max: yAxisMax
+                max: yAxisMax,
             },
             series: [{
-                name: 'Surface Pressure', // Still useful for tooltip if shared, but legend is off
-                type: 'area', 
+                type: 'areaspline',
+                name: 'Surface Pressure',
                 data: seriesData,
-                color: 'var(--m3-primary, #6750A4)', 
-                 fillColor: { 
-                    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-                    stops: [
-                        [0, 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.4)'],
-                        [1, 'rgba(var(--m3-primary-rgb, 103, 80, 164), 0.05)']
-                    ]
-                },
-                lineColor: 'var(--m3-primary, #6750A4)',
-                lineWidth: 2,
-            }],
-            exporting: {
-                buttons: {
-                    contextButton: {
-                        menuItems: themeMenuItems.concat(Highcharts.getOptions().exporting.buttons.contextButton.menuItems.slice(1)) 
-                    }
-                }
-            },
-            chart: {
-                events: {
-                    load: function () {
-                        addCurrentTimePlotLine(this); 
-                        setInterval(() => {
-                            if (pressureChartInstance === this) { 
-                                addCurrentTimePlotLine(this);
-                            }
-                        }, 60000); 
-                    }
-                }
-            }
-        });
-    } catch (error) {
-        console.error("Error initializing Highcharts:", error);
-        UIRenderer.showNotification("Error initializing chart.", "error");
-        if (pressureChartInstance) {
-            try { pressureChartInstance.destroy(); } catch (e) { /* ignore */ }
-            pressureChartInstance = null;
+                color: Config.PRIMARY_CHART_LINE_COLOR,
+            }]
         }
+    );
+
+    try {
+        console.log("Creating Highcharts instance with merged options (font size updated).");
+        pressureChartInstance = Highcharts.chart(Config.CHART_CONTAINER_ID, finalChartOptions);
+    } catch (error) {
+        console.error("Error initializing Highcharts instance:", error);
+        UIRenderer.showNotification("Error initializing chart.", "error");
+        pressureChartInstance = null;
+    }
+}
+
+export function destroyChart() {
+    if (pressureChartInstance) {
+        try {
+            if (pressureChartInstance.customUpdateInterval) {
+                clearInterval(pressureChartInstance.customUpdateInterval);
+                pressureChartInstance.customUpdateInterval = null;
+            }
+            pressureChartInstance.destroy();
+            console.log("Previous chart instance destroyed.");
+        } catch (e) {
+            console.error("Error destroying chart:", e);
+        }
+        pressureChartInstance = null;
     }
 }
 
 export function addCurrentTimePlotLine(chartInstance) {
     if (!chartInstance || !chartInstance.xAxis || !chartInstance.xAxis[0]) return;
+
     chartInstance.xAxis[0].removePlotLine(Config.CURRENT_TIME_PLOT_LINE_ID);
-    const nowMs = new Date().getTime(); 
+    const nowMs = new Date().getTime();
     const xAxisExtremes = chartInstance.xAxis[0].getExtremes();
 
-    if (xAxisExtremes && nowMs >= xAxisExtremes.min && nowMs <= xAxisExtremes.max) {
+    if (typeof xAxisExtremes.min === 'number' && typeof xAxisExtremes.max === 'number' &&
+        nowMs >= xAxisExtremes.min && nowMs <= xAxisExtremes.max) {
         chartInstance.xAxis[0].addPlotLine({
             value: nowMs,
-            color: 'var(--m3-error, red)', 
-            width: 2,
+            color: Config.CURRENT_TIME_PLOT_LINE_COLOR,
+            width: 1.5,
             id: Config.CURRENT_TIME_PLOT_LINE_ID,
-            zIndex: 5, 
-            label: {
-                text: 'Now',
-                align: 'right',
-                y: 12,
-                x: -5,
-                style: { color: 'var(--m3-error, red)', fontWeight: 'bold' }
-            }
+            zIndex: 5,
         });
     }
 }
@@ -236,73 +267,62 @@ export function addCurrentTimePlotLine(chartInstance) {
 export function clearAllAutomatedEventPlotBands() {
     if (!pressureChartInstance || !pressureChartInstance.xAxis || !pressureChartInstance.xAxis[0]) return;
     const xAxis = pressureChartInstance.xAxis[0];
-    for (let i = xAxis.plotLinesAndBands.length - 1; i >= 0; i--) {
-        const band = xAxis.plotLinesAndBands[i];
-        if (band.id && band.id.startsWith(Config.AUTOMATED_EVENT_PLOT_BAND_ID_PREFIX)) {
-            xAxis.removePlotBand(band.id);
+    if (xAxis.plotLinesAndBands && xAxis.plotLinesAndBands.length > 0) {
+        for (let i = xAxis.plotLinesAndBands.length - 1; i >= 0; i--) {
+            const band = xAxis.plotLinesAndBands[i];
+            if (band.id && (band.id.startsWith(Config.AUTOMATED_EVENT_PLOT_BAND_ID_PREFIX) || band.id === Config.SINGLE_EVENT_HIGHLIGHT_PLOT_BAND_ID)) {
+                try { xAxis.removePlotBand(band.id); } catch(e) {/*ignore*/}
+            }
         }
     }
 }
 
 export function clearSingleEventHighlight() {
     if (!pressureChartInstance || !pressureChartInstance.xAxis || !pressureChartInstance.xAxis[0]) return;
-    pressureChartInstance.xAxis[0].removePlotBand(Config.SINGLE_EVENT_HIGHLIGHT_PLOT_BAND_ID);
+    try {
+        pressureChartInstance.xAxis[0].removePlotBand(Config.SINGLE_EVENT_HIGHLIGHT_PLOT_BAND_ID);
+    } catch (e) { /* ignore */ }
 }
 
 export function highlightSingleEventOnChart(eventData) {
-    if (!pressureChartInstance) {
-        console.warn("Cannot update plot band: Chart instance not available.");
+    if (!pressureChartInstance || !pressureChartInstance.xAxis || !pressureChartInstance.xAxis[0]) return;
+    if (!eventData) {
+        clearSingleEventHighlight();
         return;
     }
-    clearAllAutomatedEventPlotBands(); 
-    clearSingleEventHighlight(); 
-
-    if (eventData && eventData.startTime && eventData.endTime) {
-        pressureChartInstance.xAxis[0].addPlotBand({
-            from: eventData.startTime * 1000, 
-            to: eventData.endTime * 1000,     
-            color: Config.PLOT_BAND_COLOR_PROMINENT,
-            borderColor: Config.PLOT_BAND_BORDER_COLOR_PROMINENT,
-            borderWidth: 1,
-            id: Config.SINGLE_EVENT_HIGHLIGHT_PLOT_BAND_ID,
-            zIndex: 3 
-        });
-    }
+    clearAllAutomatedEventPlotBands();
+    pressureChartInstance.xAxis[0].addPlotBand({
+        from: eventData.startTime * 1000,
+        to: eventData.endTime * 1000,
+        color: Config.EVENT_HIGHLIGHT_COLOR,
+        id: Config.SINGLE_EVENT_HIGHLIGHT_PLOT_BAND_ID,
+        zIndex: 3,
+    });
 }
 
 export function displayAllEventsOnChart(allEvents, prominentlyHighlightedEventId = null) {
-    if (!pressureChartInstance) {
-        console.warn("Cannot display all events: Chart instance not available.");
-        return;
-    }
-    clearSingleEventHighlight(); 
-    clearAllAutomatedEventPlotBands(); 
+    if (!pressureChartInstance || !pressureChartInstance.xAxis || !pressureChartInstance.xAxis[0]) return;
+    clearAllAutomatedEventPlotBands();
+    if (!allEvents || allEvents.length === 0) return;
 
-    if (allEvents && allEvents.length > 0) {
-        allEvents.forEach(event => {
-            const isProminent = event.id === prominentlyHighlightedEventId;
-            pressureChartInstance.xAxis[0].addPlotBand({
-                from: event.startTime * 1000, 
-                to: event.endTime * 1000,     
-                color: isProminent ? Config.PLOT_BAND_COLOR_PROMINENT : Config.PLOT_BAND_COLOR_STANDARD,
-                borderColor: isProminent ? Config.PLOT_BAND_BORDER_COLOR_PROMINENT : 'transparent',
-                borderWidth: isProminent ? 2 : 0,
-                id: `${Config.AUTOMATED_EVENT_PLOT_BAND_ID_PREFIX}${event.id}`,
-                zIndex: isProminent ? 4 : 3 
-            });
-        });
-    }
-}
-
-export function destroyChart() {
-    if (pressureChartInstance) {
-        try {
-            pressureChartInstance.destroy();
-            pressureChartInstance = null;
-        } catch (e) {
-            console.error("Error destroying chart:", e);
+    allEvents.forEach(event => {
+        let bandColor;
+        if (event.type === 'rise') {
+            bandColor = Config.EVENT_PLOT_BAND_RISE_COLOR;
+        } else if (event.type === 'fall') {
+            bandColor = Config.EVENT_PLOT_BAND_FALL_COLOR;
+        } else {
+            bandColor = Config.EVENT_PLOT_BAND_BASE_COLOR;
         }
-    }
+        const isProminent = event.id === prominentlyHighlightedEventId;
+        pressureChartInstance.xAxis[0].addPlotBand({
+            from: event.startTime * 1000,
+            to: event.endTime * 1000,
+            color: bandColor,
+            id: `${Config.AUTOMATED_EVENT_PLOT_BAND_ID_PREFIX}${event.id}`,
+            zIndex: isProminent ? 3 : 2,
+        });
+    });
 }
 
 export function getChartInstance() {

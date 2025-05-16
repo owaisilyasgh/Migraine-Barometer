@@ -1,0 +1,388 @@
+/* css/components.css */
+/* Card Styles */
+.m3-card {
+    background-color: var(--m3-surface-container-low); /* Surface Container Low for cards */
+    border-radius: var(--m3-shape-corner-md); /* 12px M3 corner */
+    padding: 16px;
+    margin-bottom: 16px; /* Space between cards */
+    box-shadow: var(--m3-elevation-1);
+    color: var(--m3-on-surface);
+    display: flex; /* Added for flex column layout */
+    flex-direction: column; /* Added for flex column layout */
+}
+
+.m3-card__title {
+    font: var(--m3-headline-small-font); /* << MODIFIED: Changed to Headline Small */
+    color: var(--m3-on-surface-variant); /* Or var(--m3-on-surface) for higher contrast if needed */
+    margin-bottom: 16px;
+    padding: 0; /* Remove default h2 padding if any */
+}
+
+.m3-card__content {
+    font: var(--m3-body-large-font);
+    color: var(--m3-on-surface);
+    flex-grow: 1; /* Allows content to expand within flex card */
+    display: flex; /* For nested flex layouts if needed, e.g., table container */
+    flex-direction: column; /* For nested flex layouts */
+    min-height: 0; /* Important for nested flex children to scroll correctly */
+}
+
+/* Button Styles */
+.m3-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px; /* M3 Standard height */
+    padding: 0 24px; /* M3 Standard padding (adjust if icon only) */
+    border-radius: var(--m3-shape-corner-full); /* 20px for full curve on 40px height */
+    font: var(--m3-label-large-font);
+    text-transform: none; /* M3 buttons are typically not all caps by default */
+    border: none;
+    cursor: pointer;
+    outline: none;
+    position: relative; /* For ripple effect */
+    overflow: hidden; /* To contain ripple */
+    transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+}
+
+.m3-button:disabled, .m3-button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.38; /* M3 disabled opacity for content on disabled background */
+}
+
+/* Filled Button */
+.m3-button-filled {
+    background-color: var(--m3-primary);
+    color: var(--m3-on-primary);
+}
+.m3-button-filled:not(:disabled):hover {
+    background-color: var(--m3-primary-container-hover); /* Slightly darker or state layer */
+    box-shadow: var(--m3-elevation-1); /* Hover elevation */
+}
+.m3-button-filled:disabled,
+.m3-button-filled:disabled:hover,
+.m3-button-filled[disabled] {
+    background-color: rgba(var(--m3-on-surface-rgb), 0.12); /* Disabled background */
+    color: rgba(var(--m3-on-surface-rgb), 0.38); /* Disabled text */
+    box-shadow: none;
+}
+
+
+/* Outlined Button */
+.m3-button-outlined {
+    background-color: transparent;
+    color: var(--m3-primary);
+    border: 1px solid var(--m3-outline);
+    padding: 0 23px; /* Adjust for border width */
+}
+.m3-button-outlined:not(:disabled):hover {
+    background-color: rgba(var(--m3-primary-rgb), 0.08); /* Primary with 8% opacity for hover */
+}
+.m3-button-outlined:disabled,
+.m3-button-outlined:disabled:hover,
+.m3-button-outlined[disabled] {
+    border-color: rgba(var(--m3-on-surface-rgb), 0.12); /* Disabled border */
+    color: rgba(var(--m3-on-surface-rgb), 0.38); /* Disabled text */
+    background-color: transparent;
+}
+
+.m3-button-outlined.m3-button--active {
+    background-color: var(--m3-primary-container);
+    color: var(--m3-on-primary-container);
+    border-color: var(--m3-primary-container);
+}
+
+
+/* Text Button */
+.m3-button-text {
+    background-color: transparent;
+    color: var(--m3-primary);
+    padding: 0 12px; /* Less padding for text buttons */
+}
+.m3-button-text:not(:disabled):hover {
+    background-color: rgba(var(--m3-primary-rgb), 0.08); /* Primary with 8% opacity for hover */
+}
+.m3-button-text:disabled,
+.m3-button-text[disabled] {
+    color: rgba(var(--m3-on-surface-rgb), 0.38); /* Disabled text */
+    background-color: transparent;
+}
+
+
+/* Button Group (for spacing) */
+.m3-button-group {
+    display: flex;
+    gap: 8px; /* Spacing between buttons in a group */
+    margin-bottom: 16px; /* Space below the group */
+}
+
+
+/* Ripple Effect */
+.m3-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0.2;
+    transform: scale(0);
+    animation: m3-ripple-animation 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes m3-ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Table Styles */
+.m3-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: var(--m3-shape-corner-xs);
+    flex-grow: 1;
+    min-height: 0;
+    display: flex;
+}
+
+.m3-table {
+    width: 100%;
+    border-collapse: collapse;
+    font: var(--m3-body-medium-font);
+    background-color: var(--m3-surface);
+    flex-grow: 1;
+}
+
+.m3-table th, .m3-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--m3-outline-variant);
+    color: var(--m3-on-surface-variant);
+    vertical-align: middle;
+}
+
+.m3-table th {
+    font: var(--m3-title-small-font);
+    color: var(--m3-on-surface);
+    background-color: var(--m3-surface-container-low);
+    white-space: nowrap;
+}
+
+.m3-table th:nth-child(1),
+.m3-table td:nth-child(1) { min-width: 100px; }
+.m3-table th:nth-child(2),
+.m3-table td:nth-child(2) { min-width: 100px; }
+
+.m3-table td { color: var(--m3-on-surface); }
+.m3-table tbody tr:last-child td { border-bottom: none; }
+.m3-table tbody tr:hover td { background-color: rgba(var(--m3-on-surface-rgb), 0.04); }
+
+.m3-table .severity-low { color: var(--m3-primary); }
+.m3-table .severity-medium { color: #FF8C00; }
+.m3-table .severity-high { color: var(--m3-error); }
+
+.migraine-log-cell { min-width: 130px; }
+
+.m3-table-select {
+    padding: 6px 8px;
+    border-radius: var(--m3-shape-corner-xs);
+    border: 1px solid var(--m3-outline);
+    background-color: var(--m3-surface-container-lowest);
+    color: var(--m3-on-surface-variant);
+    font: var(--m3-body-medium-font);
+    min-width: 120px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23${(getComputedStyle(document.documentElement).getPropertyValue('--m3-on-surface-variant-rgb').trim().split(',').map(c => parseInt(c).toString(16).padStart(2, '0')).join(''))}'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 1.2em;
+    padding-right: 30px;
+}
+.m3-table-select:focus {
+    outline: 2px solid var(--m3-primary);
+    border-color: var(--m3-primary);
+}
+.m3-table-select option {
+    background-color: var(--m3-surface-container-lowest);
+    color: var(--m3-on-surface);
+}
+
+/* Snackbar / Notification Styles */
+.m3-snackbar-container {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: max-content;
+    min-width: 288px;
+    max-width: calc(100% - 32px);
+}
+
+.m3-notification {
+    background-color: var(--m3-inverse-surface);
+    color: var(--m3-inverse-on-surface);
+    padding: 14px 16px;
+    border-radius: var(--m3-shape-corner-xs);
+    box-shadow: var(--m3-elevation-3);
+    font: var(--m3-body-medium-font);
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    text-align: left;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+}
+
+.m3-notification.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.m3-notification.success { background-color: #4CAF50; color: white; }
+.m3-notification.error { background-color: var(--m3-error-container); color: var(--m3-on-error-container); }
+.m3-notification.info { background-color: #2196F3; color: white; }
+.m3-notification.warning { background-color: #FF9800; color: black; }
+
+
+/* Table row highlighting */
+#pressureEventsTable tbody tr.highlighted-automated-event-row td {
+    background-color: rgba(var(--m3-primary-rgb), 0.12) !important;
+    color: var(--m3-on-surface) !important;
+}
+#pressureEventsTable tbody tr:not(.highlighted-automated-event-row):not(.current-event):hover td {
+    background-color: rgba(var(--m3-on-surface-rgb), 0.04);
+}
+#pressureEventsTable tbody tr.current-event td {
+    font-weight: 500;
+    background-color: rgba(var(--m3-primary-rgb), 0.08) !important;
+    color: var(--m3-on-surface) !important;
+}
+#pressureEventsTable tbody tr.current-event:hover td {
+    background-color: rgba(var(--m3-primary-rgb), 0.12) !important;
+}
+#pressureEventsTable tbody tr.current-event.highlighted-automated-event-row td {
+    background-color: rgba(var(--m3-primary-rgb), 0.16) !important;
+}
+
+.automated-events-controls {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+/* Styling for the new toggle switch */
+.m3-toggle-switch-container {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.m3-toggle-switch-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.m3-toggle-switch-label {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 32px;
+}
+
+.m3-toggle-switch-track {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--m3-surface-container-highest);
+    border: 2px solid var(--m3-outline);
+    transition: background-color .2s ease-out, border-color .2s ease-out;
+    border-radius: 16px;
+}
+
+.m3-toggle-switch-thumb-container {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 4px;
+    left: 4px;
+    width: 24px;
+    height: 24px;
+    transition: transform .2s ease-out;
+}
+
+.m3-toggle-switch-thumb {
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-color: var(--m3-outline);
+    border-radius: 50%;
+    transition: background-color .2s ease-out, width .2s ease-out, height .2s ease-out; /* Added width/height transition */
+    box-shadow: var(--m3-elevation-1);
+}
+
+.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-track {
+    background-color: var(--m3-primary);
+    border-color: var(--m3-primary);
+}
+
+.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-thumb-container {
+    transform: translateX(20px);
+}
+
+.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-thumb {
+    background-color: var(--m3-on-primary);
+    width: 24px; /* Thumb expands when checked */
+    height: 24px;
+}
+
+.m3-toggle-switch-input:not(:checked):hover + .m3-toggle-switch-label .m3-toggle-switch-thumb {
+    background-color: var(--m3-on-surface-variant);
+}
+.m3-toggle-switch-input:checked:hover + .m3-toggle-switch-label .m3-toggle-switch-thumb {
+    background-color: var(--m3-primary-container);
+}
+
+.m3-toggle-switch-input:focus-visible + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: -8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0.12;
+    pointer-events: none;
+}
+.m3-toggle-switch-input:checked:focus-visible + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before {
+    color: var(--m3-primary);
+}
+.m3-toggle-switch-input:not(:checked):focus-visible + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before {
+    color: var(--m3-on-surface);
+}
+
+.m3-toggle-switch-text-label {
+    font: var(--m3-label-large-font);
+    color: var(--m3-on-surface);
+    cursor: pointer;
+}
+/* filename: css/components.css */

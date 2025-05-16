@@ -1,0 +1,59 @@
+/* css/layout.css */
+/* Top App Bar */
+.m3-top-app-bar {
+    background-color: var(--m3-surface-container-low);
+    color: var(--m3-on-surface-variant);
+    padding: 8px 16px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--m3-elevation-0);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.m3-top-app-bar__title {
+    font-family: var(--m3-title-large-font-family);
+    font-weight: var(--m3-title-large-font-weight);
+    font-size: var(--m3-title-large-font-size);
+    line-height: var(--m3-title-large-line-height);
+    letter-spacing: var(--m3-title-large-letter-spacing);
+    margin: 0;
+}
+
+/* Main Content Area */
+.m3-main-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    flex: 1 0 auto; /* Allows main content to grow and fill space */
+    overflow: hidden; /* Prevent main content itself from scrolling if children are managed */
+}
+
+/* Specific styling for the pressure events section card to manage its height */
+#pressure-events-section.m3-card {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allows this card to take up available vertical space in main-content */
+    min-height: 0; /* Important for flex children, prevents it from overflowing its container */
+    /* max-height: can be set if you want to cap its growth, e.g. max-height: 60vh; */
+}
+
+
+/* Footer */
+.m3-footer {
+    background-color: var(--m3-surface-container-low);
+    color: var(--m3-on-surface-variant);
+    padding: 16px;
+    text-align: center;
+    font-size: var(--m3-label-large-font-size);
+    /* margin-top: auto; /* This might not be needed if main-content flex correctly pushes it down */
+}
+
+.m3-footer p { margin: 0; }
+
+
+/* Responsive adjustments for layout */
+@media (max-width: 7

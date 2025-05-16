@@ -1,0 +1,147 @@
+/* css/m3-core.css */
+/* M3 Color Palette (Light Theme - Primary Purple as base) */
+:root {
+    /* Primary */
+    --m3-primary: #6750A4;
+    --m3-on-primary: #FFFFFF;
+    --m3-primary-container: #EADDFF;
+    --m3-on-primary-container: #21005E;
+    --m3-primary-rgb: 103, 80, 164; /* For RGBA usage */
+
+    /* Secondary */
+    --m3-secondary: #625B71;
+    --m3-on-secondary: #FFFFFF;
+    --m3-secondary-container: #E8DEF8;
+    --m3-on-secondary-container: #1E192B;
+
+    /* Tertiary */
+    --m3-tertiary: #7D5260;
+    --m3-on-tertiary: #FFFFFF;
+    --m3-tertiary-container: #FFD8E4;
+    --m3-on-tertiary-container: #370B1E;
+
+    /* Error */
+    --m3-error: #B3261E;
+    --m3-on-error: #FFFFFF;
+    --m3-error-container: #F9DEDC;
+    --m3-on-error-container: #410E0B;
+
+    /* Surface */
+    --m3-surface-dim: #DED8E1;
+    --m3-surface: #FFFBFE; /* Main background */
+    --m3-surface-bright: #FFFBFE;
+    --m3-surface-container-lowest: #FFFFFF;
+    --m3-surface-container-low: #F7F2FA;
+    --m3-surface-container: #F3EDF7;
+    --m3-surface-container-high: #ECE6F0;
+    --m3-surface-container-highest: #E6E0E9;
+    --m3-on-surface: #1C1B1F;
+    --m3-on-surface-rgb: 28, 27, 31; /* For RGBA usage */
+    --m3-on-surface-variant: #49454E;
+    --m3-on-surface-variant-rgb: 73, 69, 79; /* For RGBA usage with select arrow */
+
+    /* Inverse Surface (for snackbars, etc.) */
+    --m3-inverse-surface: #313033;
+    --m3-inverse-on-surface: #F4EFF4;
+    --m3-inverse-primary: #D0BCFF;
+
+    /* Outline */
+    --m3-outline: #79747E;
+    --m3-outline-variant: #C4C7C5;
+
+    /* Scrim */
+    --m3-scrim: #000000; /* Opacity applied in use */
+
+    /* Shadow - Placeholder for simplified web shadows */
+    --m3-shadow-color: rgba(0, 0, 0, 0.2);
+
+    /* Typography */
+    --m3-font-family-brand: 'Roboto', sans-serif;
+    --m3-font-family-plain: 'Roboto', sans-serif;
+
+    /* M3 Type Scale reference (use these for consistency) */
+    /* Display */
+    --m3-display-large-font-family: var(--m3-font-family-brand);
+    --m3-display-large-font-weight: 400;
+    --m3-display-large-font-size: 57px;
+    --m3-display-large-line-height: 64px;
+    --m3-display-large-letter-spacing: -0.25px;
+
+    /* Headline */
+    --m3-headline-large-font-family: var(--m3-font-family-brand);
+    --m3-headline-large-font-weight: 400;
+    --m3-headline-large-font-size: 32px;
+    --m3-headline-large-line-height: 40px;
+    --m3-headline-large-letter-spacing: 0px;
+
+    /* Title */
+    --m3-title-large-font-family: var(--m3-font-family-brand);
+    --m3-title-large-font-weight: 500; /* Note: M3 uses 400 for Title Large, but 500 is common for emphasis */
+    --m3-title-large-font-size: 22px;
+    --m3-title-large-line-height: 28px;
+    --m3-title-large-letter-spacing: 0px;
+
+    /* Label */
+    --m3-label-large-font-family: var(--m3-font-family-plain);
+    --m3-label-large-font-weight: 500; /* Medium */
+    --m3-label-large-font-size: 14px;
+    --m3-label-large-line-height: 20px;
+    --m3-label-large-letter-spacing: 0.1px;
+
+    /* Body */
+    --m3-body-large-font-family: var(--m3-font-family-plain);
+    --m3-body-large-font-weight: 400;
+    --m3-body-large-font-size: 16px;
+    --m3-body-large-line-height: 24px;
+    --m3-body-large-letter-spacing: 0.5px; /* Or 0.15px if less spacing is desired */
+
+    /* Shape */
+    --m3-shape-corner-xs: 4px;
+    --m3-shape-corner-sm: 8px;
+    --m3-shape-corner-md: 12px;
+    --m3-shape-corner-lg: 16px;
+    --m3-shape-corner-xl: 28px;
+    --m3-shape-corner-full: 20px; /* M3 Buttons are 40dp high, so 20px radius for full curve */
+
+    /* Elevation - using simplified box-shadows for web */
+    /* Based on M3 elevation levels (dp converted to px, shadows adjusted) */
+    --m3-elevation-0: none;
+    --m3-elevation-1: 0 1px 2px 0 var(--m3-shadow-color), 0 1px 3px 0 var(--m3-shadow-color);
+    --m3-elevation-2: 0 1px 2px 0 var(--m3-shadow-color), 0 2px 6px 2px var(--m3-shadow-color);
+    --m3-elevation-3: 0 1px 3px 0 var(--m3-shadow-color), 0 4px 8px 3px var(--m3-shadow-color);
+    /* Add more elevation levels as needed */
+}
+
+/* Global M3 Body Styles */
+.m3-body {
+    font-family: var(--m3-body-large-font-family);
+    font-size: var(--m3-body-large-font-size);
+    line-height: var(--m3-body-large-line-height);
+    letter-spacing: var(--m3-body-large-letter-spacing);
+    color: var(--m3-on-surface);
+    background-color: var(--m3-surface);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Basic reset for box-sizing */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Ensure HTML and BODY take full height for footer behavior */
+html, body {
+    height: 100%;
+}
+
+/* Dynamic theme class placeholders - JavaScript will add these */
+/* .theme-mode-light { ... already defined by :root essentially ... } */
+/* .theme-mode-dark { ... would define dark theme variables ... } */
+/* .theme-dynamic-colors { ... populated by Material Theme Builder JS ... } */
+
+/* filename: css/m3-core.css */

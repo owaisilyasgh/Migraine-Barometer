@@ -1,0 +1,102 @@
+/* css/chart.css */
+/* Highcharts specific overrides for M3 */
+.highcharts-root {
+    font-family: var(--m3-font-family-plain, sans-serif) !important; /* Ensure M3 font is applied */
+}
+
+.highcharts-title, .highcharts-subtitle, .highcharts-axis-title, .highcharts-axis-labels, .highcharts-legend-item text {
+    font-family: var(--m3-font-family-plain, sans-serif) !important;
+    fill: var(--m3-on-surface-variant) !important; /* For most chart text elements */
+}
+/* Note: .highcharts-tooltip text default fill is handled by .highcharts-tooltip > span color now */
+
+.highcharts-axis-line, .highcharts-tick {
+    stroke: var(--m3-outline-variant) !important;
+}
+
+.highcharts-background {
+    fill: var(--m3-surface-container-lowest) !important; /* Chart background */
+}
+
+.highcharts-plot-background {
+    fill: transparent !important; /* Plot area background, often best transparent */
+}
+
+/* Tooltip Styles */
+.highcharts-tooltip > span {
+    background-color: rgba(var(--m3-inverse-surface-rgb, 49, 48, 51), 0.95) !important; /* Darker tooltip background with high opacity */
+    border-radius: var(--m3-shape-corner-sm) !important; /* 8px M3 corner */
+    padding: 8px 12px !important; /* M3 typical padding: 8dp vertical, 12dp horizontal */
+    color: var(--m3-inverse-on-surface) !important; /* Default light text on dark tooltip */
+    box-shadow: var(--m3-elevation-2) !important;
+    font-family: var(--m3-label-large-font-family) !important; /* Consistent M3 font */
+    font-size: var(--m3-label-large-font-size) !important; /* M3 Label Large size */
+    line-height: var(--m3-label-large-line-height) !important; /* M3 Label Large line height */
+}
+
+/* Tooltip Header (Date/Time) Styling - targets the new div from formatter */
+.highcharts-tooltip > span div:first-child {
+    color: var(--m3-inverse-on-surface) !important; /* Ensure header is light */
+    opacity: 0.85; /* Slightly less prominent than values */
+    margin-bottom: 6px; /* Space between header and table content */
+    /* font-weight: 500; /* Optional: make header slightly bolder */
+}
+
+/* Tooltip Series Name ("Surface Pressure:") Styling - targets the new class from formatter */
+.highcharts-tooltip .tooltip-series-name {
+    color: var(--m3-inverse-on-surface) !important; /* Make it light */
+    opacity: 0.75; /* Make it slightly less prominent than the value */
+    padding-right: 8px !important; /* Consistent padding */
+}
+
+/* Tooltip Value (e.g., "994.2 hPa") Styling - targets the <b> tag */
+.highcharts-tooltip table td b {
+    color: var(--m3-inverse-on-surface) !important; /* Ensure value is fully opaque and light */
+    opacity: 1;
+    font-weight: 500; /* M3 Medium weight for emphasis */
+}
+
+
+/* Export Menu */
+.highcharts-contextmenu {
+    background: var(--m3-surface-container-low) !important;
+    border-radius: var(--m3-shape-corner-sm) !important;
+    box-shadow: var(--m3-elevation-2) !important;
+    padding: 8px 0 !important; /* M3 Menu vertical padding */
+}
+.highcharts-menu-item {
+    font-family: var(--m3-label-large-font-family) !important;
+    font-size: var(--m3-label-large-font-size) !important;
+    color: var(--m3-on-surface-variant) !important;
+    padding: 8px 16px !important; /* M3 Menu item padding */
+    transition: background-color 0.15s ease-out !important;
+}
+.highcharts-menu-item:hover {
+    background-color: rgba(var(--m3-primary-rgb), 0.08) !important; /* M3 Hover state */
+    color: var(--m3-primary) !important;
+}
+.highcharts-menu-item-separator {
+    border-top: 1px solid var(--m3-outline-variant) !important;
+    margin: 4px 0 !important;
+}
+
+
+.highcharts-credits { display: none !important; }
+
+/* Chart Container */
+.chart-container {
+    width: 100%;
+    height: 400px; /* Or as needed */
+    border-radius: var(--m3-shape-corner-sm); /* Match card content rounding if any */
+    overflow: hidden; /* Ensure chart respects border radius */
+    background-color: var(--m3-surface-container-lowest); /* Match card bg */
+    position: relative; /* For any absolute positioned elements within, if needed */
+}
+
+.large-chart-container { height: 390px; } /* If you need a larger default for main chart */
+
+/* Current time plot line style (Highcharts will add this class) */
+/* No specific label style needed now as label is removed */
+/* .highcharts-plot-line.current-time-line .highcharts-plot-line-label { ... } */
+
+/* filename: css/chart.css */
