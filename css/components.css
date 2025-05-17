@@ -1,388 +1,257 @@
 /* css/components.css */
+
 /* Card Styles */
 .m3-card {
-    background-color: var(--m3-surface-container-low); /* Surface Container Low for cards */
-    border-radius: var(--m3-shape-corner-md); /* 12px M3 corner */
-    padding: 16px;
-    margin-bottom: 16px; /* Space between cards */
+    background-color: var(--m3-surface-container-lowest);
+    border-radius: var(--m3-shape-corner-md); /* 12px */
+    padding: 16px; /* Standard M3 card padding */
     box-shadow: var(--m3-elevation-1);
-    color: var(--m3-on-surface);
-    display: flex; /* Added for flex column layout */
-    flex-direction: column; /* Added for flex column layout */
+    overflow: hidden; /* If content might overflow rounded corners, typically good for cards */
+    display: flex; /* Added for flex-direction and potential alignment */
+    flex-direction: column; /* Stack title and content vertically */
 }
-
 .m3-card__title {
-    font: var(--m3-headline-small-font); /* << MODIFIED: Changed to Headline Small */
-    color: var(--m3-on-surface-variant); /* Or var(--m3-on-surface) for higher contrast if needed */
-    margin-bottom: 16px;
-    padding: 0; /* Remove default h2 padding if any */
-}
-
-.m3-card__content {
-    font: var(--m3-body-large-font);
+    font: var(--m3-title-large-font);
     color: var(--m3-on-surface);
-    flex-grow: 1; /* Allows content to expand within flex card */
-    display: flex; /* For nested flex layouts if needed, e.g., table container */
-    flex-direction: column; /* For nested flex layouts */
-    min-height: 0; /* Important for nested flex children to scroll correctly */
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+.m3-card__content {
+    font: var(--m3-body-medium-font);
+    color: var(--m3-on-surface-variant);
+    flex-grow: 1; /* Allows content to take available space if card has fixed height or flex parent */
+    /* If content itself needs to scroll within the card, add:
+       overflow-y: auto;
+       max-height: some_value; (if card itself doesn't have a constrained height)
+    */
+}
+.m3-card__content p { margin-top: 0; margin-bottom: 8px; }
+.m3-card__content p:last-child { margin-bottom: 0; }
+
+
+/* Button Styles (no changes) */
+.m3-button { font: var(--m3-label-large-font); color: var(--m3-primary); background-color: transparent; border: 1px solid transparent; min-height: 40px; padding: 0 24px; border-radius: var(--m3-shape-corner-full); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-transform: none; transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out; position: relative; overflow: hidden; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+.m3-button:disabled, .m3-button[disabled] { opacity: 0.38; cursor: default; box-shadow: none !important; }
+.m3-button-filled { background-color: var(--m3-primary); color: var(--m3-on-primary); box-shadow: var(--m3-elevation-0); }
+.m3-button-filled:not(:disabled):hover { background-color: var(--m3-primary-container-hover); box-shadow: var(--m3-elevation-1); }
+.m3-button-filled:not(:disabled):focus-visible { box-shadow: 0 0 0 2px var(--m3-primary-container); }
+.m3-button-filled:disabled, .m3-button-filled[disabled] { background-color: rgba(var(--m3-on-surface-rgb), 0.12); color: rgba(var(--m3-on-surface-rgb), 0.38); }
+.m3-button-text { padding: 0 12px; }
+.m3-button-text:not(:disabled):hover { background-color: rgba(var(--m3-primary-rgb), 0.08); }
+.m3-button-text:not(:disabled):focus-visible { background-color: rgba(var(--m3-primary-rgb), 0.12); }
+.m3-button-text:disabled, .m3-button-text[disabled] { color: rgba(var(--m3-on-surface-rgb), 0.38); }
+.m3-button-icon { padding: 8px; min-width: 40px; border-radius: var(--m3-shape-corner-full); }
+.m3-button-icon .material-icons { font-size: 24px; color: var(--m3-primary); }
+.m3-button-icon:disabled .material-icons, .m3-button-icon[disabled] .material-icons { color: rgba(var(--m3-on-surface-rgb), 0.38); }
+.m3-ripple { position: absolute; border-radius: 50%; background-color: currentColor; opacity: 0.2; transform: scale(0); animation: m3-ripple-animation 0.6s linear; pointer-events: none; }
+@keyframes m3-ripple-animation { to { transform: scale(4); opacity: 0; } }
+
+/* Select used in cards (no changes) */
+.m3-table-select { font: var(--m3-body-medium-font); color: var(--m3-on-surface); background-color: var(--m3-surface-container-lowest); border: 1px solid var(--m3-outline-variant); border-radius: var(--m3-shape-corner-xs); padding: 8px 32px 8px 12px; min-width: 120px; height: 40px; line-height: normal; width: 100%; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23${'var(--m3-on-surface-variant-rgb)'.replace(/[^\w\s]/gi, '').replace(/\s/g, '').substring(0,6)}'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 18px; box-sizing: border-box; flex-shrink: 0; }
+.m3-table-select:focus { border-color: var(--m3-primary); outline: 2px solid transparent; box-shadow: 0 0 0 2px var(--m3-primary); }
+.m3-table-select option { background-color: var(--m3-surface-container-highest); color: var(--m3-on-surface); }
+
+
+/* Snackbar / Notification Styles (no changes) */
+.m3-snackbar-container { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column-reverse; align-items: center; gap: 8px; width: fit-content; max-width: calc(100% - 32px); pointer-events: none; }
+.m3-notification { background-color: var(--m3-inverse-surface); color: var(--m3-inverse-on-surface); padding: 14px 16px; border-radius: var(--m3-shape-corner-xs); box-shadow: var(--m3-elevation-3); font: var(--m3-body-medium-font); min-width: 288px; max-width: 568px; opacity: 0; transform: translateY(20px) scale(0.95); transition: opacity 0.3s ease-out, transform 0.3s ease-out; pointer-events: auto; }
+.m3-notification.show { opacity: 1; transform: translateY(0) scale(1); }
+.m3-notification.success { background-color: #4CAF50; color: white; }
+.m3-notification.error { background-color: var(--m3-error-container); color: var(--m3-on-error-container); }
+.m3-notification.info { background-color: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
+.m3-notification.warning { background-color: #FF9800; color: black; }
+
+/* Controls for Chart (no changes) */
+.chart-controls-card .automated-events-controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0; width: 100%; flex-wrap: nowrap; }
+@media (max-width: 400px) { .chart-controls-card .automated-events-controls { flex-direction: column; align-items: flex-start; gap: 12px; } .chart-controls-card .automated-events-controls .return-to-current-btn { width: auto; align-self: flex-start; } }
+.m3-toggle-switch-container { display: inline-flex; align-items: center; cursor: pointer; user-select: none; gap: 8px; position: relative; }
+.m3-toggle-switch-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.m3-toggle-switch-label { position: relative; display: inline-block; width: 52px; height: 32px; }
+.m3-toggle-switch-track { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--m3-surface-container-highest); border: 2px solid var(--m3-outline); border-radius: 16px; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.m3-toggle-switch-thumb-container { position: absolute; left: 4px; top: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease-out; }
+.m3-toggle-switch-thumb-container::before { content: ""; position: absolute; width: 40px; height: 40px; border-radius: 50%; background-color: var(--m3-on-surface); opacity: 0; transform: scale(0.8); transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
+.m3-toggle-switch-thumb { width: 16px; height: 16px; background-color: var(--m3-outline); border-radius: 50%; transition: width 0.2s ease-out, height 0.2s ease-out, background-color 0.2s ease; box-shadow: var(--m3-elevation-1); }
+.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-track { background-color: var(--m3-primary); border-color: var(--m3-primary); }
+.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-thumb-container { transform: translateX(20px); }
+.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-thumb { width: 24px; height: 24px; background-color: var(--m3-on-primary); }
+.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before { background-color: var(--m3-primary); }
+.m3-toggle-switch-input:not(:checked):hover + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before, .m3-toggle-switch-input:checked:hover + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before { opacity: var(--m3-hover-state-layer-opacity, 0.08); transform: scale(1); }
+.m3-toggle-switch-input:focus-visible + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before, .m3-toggle-switch-input:checked:focus-visible + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before { opacity: var(--m3-focus-state-layer-opacity, 0.12); transform: scale(1); }
+.m3-toggle-switch-text-label { font: var(--m3-label-large-font); color: var(--m3-on-surface); }
+.chart-controls-card .return-to-current-btn { font: var(--m3-label-large-font); color: var(--m3-primary); padding: 0 12px 0 8px; min-height: 32px; }
+.chart-controls-card .return-to-current-btn .material-icons { margin-right: 4px; font-size: 20px; vertical-align: middle; }
+
+/* Event Carousel - Rewritten Core CSS */
+.focused-event-carousel-container { /* This is the VIEWPORT */
+    position: relative;
+    overflow: hidden;   /* CRITICAL: This clips cards outside the viewport */
+    width: 100%;        /* Takes full width of its parent */
+    flex-grow: 1;
+    padding-bottom: 50px; /* Space for bottom controls */
+    box-sizing: border-box;
+    /* MODIFICATION: Remove horizontal padding */
+    /* padding-left: 5px; */
+    /* padding-right: 5px; */
 }
 
-/* Button Styles */
-.m3-button {
-    display: inline-flex;
+#pressure-events-section.m3-card > .m3-card__content {
+    /* This is the parent of .focused-event-carousel-container */
+    /* Styles defined in layout.css: flex-grow, min-height, display:flex, padding:0, overflow:hidden */
+}
+
+.event-card-wrapper { /* This is the SLIDING STRIP of cards */
+    display: flex;
+    height: 100%;  /* Fills the height of .focused-event-carousel-container (before its padding-bottom) */
+    transition: transform 0.3s ease-in-out;
+    /* NO width set - its width is sum of children */
+    /* NO overflow - must not clip cards */
+}
+
+.event-card { /* Each INDIVIDUAL card/slide */
+    width: 100%;        /* CRITICAL: Each card is 100% of the VIEWPORT's *inner* width */
+    flex-shrink: 0;     /* CRITICAL: Prevents cards from shrinking */
+    box-sizing: border-box;
+    height: 100%;       /* Fill the height of the wrapper */
+    background-color: var(--m3-surface-container-low); /* Card background */
+    border-radius: var(--m3-shape-corner-lg); /* 16px, more prominent for carousel cards */
+    display: flex;
+    flex-direction: column; /* For internal layout: title, then scrollable content */
+    padding: 12px;      /* Internal padding for the card's content */
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s ease-out;
+    border: 1px solid var(--m3-outline-variant); /* Default border for all sides */
+    border-left-width: 1px; /* Ensure this is explicitly set for default cases */
+    min-width: 0; /* Ensure flex item respects its width and doesn't get oversized */
+}
+
+.event-card--active {
+    /* transform: scale(1.02); *//* User removed this to ensure full card visibility */
+    box-shadow: var(--m3-elevation-3);
+    border-color: var(--m3-primary); /* Highlight border of active card */
+}
+
+/* Severity borders override the default border-left */
+.event-card.calm-period-card {
+    border-left: 1px solid var(--m3-outline-variant); /* Ensure it has a left border */
+}
+.event-card.severity-low { border-left: 4px solid var(--m3-primary); }
+.event-card.severity-medium { border-left: 4px solid #FF8C00; } /* Consider var(--m3-warning-or-similar) */
+.event-card.severity-high { border-left: 4px solid var(--m3-error); }
+.event-card.severity-minimal, .event-card.severity-unknown { border-left: 4px solid var(--m3-outline-variant); }
+
+/* Active card severity border color should match active border or severity color */
+.event-card--active.severity-low { border-left-color: var(--m3-primary); }
+.event-card--active.severity-medium { border-left-color: #FF8C00; }
+.event-card--active.severity-high { border-left-color: var(--m3-error); }
+.event-card--active.severity-minimal, .event-card--active.severity-unknown { border-left-color: var(--m3-outline); }
+
+
+/* This is the div *inside* an .event-card that holds the actual text content and select */
+.event-card > .m3-card__title { /* Title is direct child of .event-card, before .m3-card__content */
+    font: var(--m3-title-medium-font);
+    color: var(--m3-on-surface);
+    margin-bottom: 8px;
+    padding: 0; /* Padding is on .event-card */
+}
+.event-card > .m3-card__content { /* Scrollable content area within each card */
+    flex-grow: 1;
+    overflow-y: auto; /* Allows content to scroll if it exceeds card height */
+    overflow-x: hidden; /* Prevent horizontal content overflow from stretching the card */
+    padding: 0; /* Padding is on .event-card parent */
+    font: var(--m3-body-small-font); /* Slightly smaller for more density in cards */
+    color: var(--m3-on-surface-variant);
+}
+.event-card > .m3-card__content p {
+    margin-top: 0;
+    margin-bottom: 6px; /* Tighter spacing in cards */
+}
+.event-card > .m3-card__content p strong {
+    color: var(--m3-on-surface); /* Make strong text stand out a bit more */
+}
+.event-card .m3-table-select { /* Select is inside the scrollable .m3-card__content */
+    margin-top: 8px; /* Space above select */
+}
+.next-event-info {
+    font-style: italic;
+    font-size: var(--m3-body-small-font-size);
+    opacity: 0.9;
+    margin-top: 10px !important;
+}
+
+
+.carousel-bottom-controls {
+    position: absolute;
+    bottom: 10px; /* Position from bottom of viewport */
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    z-index: 2; /* Above cards */
+}
+.carousel-nav {
+    background-color: rgba(var(--m3-surface-rgb), 0.8);
+    border: 1px solid var(--m3-outline-variant);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px; /* M3 Standard height */
-    padding: 0 24px; /* M3 Standard padding (adjust if icon only) */
-    border-radius: var(--m3-shape-corner-full); /* 20px for full curve on 40px height */
-    font: var(--m3-label-large-font);
-    text-transform: none; /* M3 buttons are typically not all caps by default */
-    border: none;
     cursor: pointer;
-    outline: none;
-    position: relative; /* For ripple effect */
-    overflow: hidden; /* To contain ripple */
-    transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out;
-    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+    transition: background-color 0.2s ease;
+    box-shadow: var(--m3-elevation-1);
 }
+.carousel-nav:hover { background-color: rgba(var(--m3-surface-rgb), 0.9); }
+.carousel-nav .material-icons { font-size: 24px; color: var(--m3-primary); }
+.carousel-nav:disabled { background-color: rgba(var(--m3-surface-rgb), 0.4);}
+.carousel-nav:disabled .material-icons { color: var(--m3-outline); }
 
-.m3-button:disabled, .m3-button[disabled] {
-    cursor: not-allowed;
-    opacity: 0.38; /* M3 disabled opacity for content on disabled background */
-}
-
-/* Filled Button */
-.m3-button-filled {
-    background-color: var(--m3-primary);
-    color: var(--m3-on-primary);
-}
-.m3-button-filled:not(:disabled):hover {
-    background-color: var(--m3-primary-container-hover); /* Slightly darker or state layer */
-    box-shadow: var(--m3-elevation-1); /* Hover elevation */
-}
-.m3-button-filled:disabled,
-.m3-button-filled:disabled:hover,
-.m3-button-filled[disabled] {
-    background-color: rgba(var(--m3-on-surface-rgb), 0.12); /* Disabled background */
-    color: rgba(var(--m3-on-surface-rgb), 0.38); /* Disabled text */
-    box-shadow: none;
-}
-
-
-/* Outlined Button */
-.m3-button-outlined {
-    background-color: transparent;
-    color: var(--m3-primary);
-    border: 1px solid var(--m3-outline);
-    padding: 0 23px; /* Adjust for border width */
-}
-.m3-button-outlined:not(:disabled):hover {
-    background-color: rgba(var(--m3-primary-rgb), 0.08); /* Primary with 8% opacity for hover */
-}
-.m3-button-outlined:disabled,
-.m3-button-outlined:disabled:hover,
-.m3-button-outlined[disabled] {
-    border-color: rgba(var(--m3-on-surface-rgb), 0.12); /* Disabled border */
-    color: rgba(var(--m3-on-surface-rgb), 0.38); /* Disabled text */
-    background-color: transparent;
-}
-
-.m3-button-outlined.m3-button--active {
-    background-color: var(--m3-primary-container);
-    color: var(--m3-on-primary-container);
-    border-color: var(--m3-primary-container);
-}
-
-
-/* Text Button */
-.m3-button-text {
-    background-color: transparent;
-    color: var(--m3-primary);
-    padding: 0 12px; /* Less padding for text buttons */
-}
-.m3-button-text:not(:disabled):hover {
-    background-color: rgba(var(--m3-primary-rgb), 0.08); /* Primary with 8% opacity for hover */
-}
-.m3-button-text:disabled,
-.m3-button-text[disabled] {
-    color: rgba(var(--m3-on-surface-rgb), 0.38); /* Disabled text */
-    background-color: transparent;
-}
-
-
-/* Button Group (for spacing) */
-.m3-button-group {
-    display: flex;
-    gap: 8px; /* Spacing between buttons in a group */
-    margin-bottom: 16px; /* Space below the group */
-}
-
-
-/* Ripple Effect */
-.m3-ripple {
-    position: absolute;
-    border-radius: 50%;
-    background-color: currentColor;
-    opacity: 0.2;
-    transform: scale(0);
-    animation: m3-ripple-animation 0.6s linear;
-    pointer-events: none;
-}
-
-@keyframes m3-ripple-animation {
-    to {
-        transform: scale(4);
-        opacity: 0;
-    }
-}
-
-/* Table Styles */
-.m3-table-container {
-    overflow-x: auto;
-    border: 1px solid var(--m3-outline-variant);
-    border-radius: var(--m3-shape-corner-xs);
-    flex-grow: 1;
-    min-height: 0;
-    display: flex;
-}
-
-.m3-table {
-    width: 100%;
-    border-collapse: collapse;
-    font: var(--m3-body-medium-font);
-    background-color: var(--m3-surface);
-    flex-grow: 1;
-}
-
-.m3-table th, .m3-table td {
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid var(--m3-outline-variant);
+.carousel-position-indicator {
+    font: var(--m3-label-small-font);
     color: var(--m3-on-surface-variant);
-    vertical-align: middle;
-}
-
-.m3-table th {
-    font: var(--m3-title-small-font);
-    color: var(--m3-on-surface);
-    background-color: var(--m3-surface-container-low);
-    white-space: nowrap;
-}
-
-.m3-table th:nth-child(1),
-.m3-table td:nth-child(1) { min-width: 100px; }
-.m3-table th:nth-child(2),
-.m3-table td:nth-child(2) { min-width: 100px; }
-
-.m3-table td { color: var(--m3-on-surface); }
-.m3-table tbody tr:last-child td { border-bottom: none; }
-.m3-table tbody tr:hover td { background-color: rgba(var(--m3-on-surface-rgb), 0.04); }
-
-.m3-table .severity-low { color: var(--m3-primary); }
-.m3-table .severity-medium { color: #FF8C00; }
-.m3-table .severity-high { color: var(--m3-error); }
-
-.migraine-log-cell { min-width: 130px; }
-
-.m3-table-select {
-    padding: 6px 8px;
+    background-color: rgba(var(--m3-surface-rgb), 0.7);
+    padding: 4px 8px;
     border-radius: var(--m3-shape-corner-xs);
-    border: 1px solid var(--m3-outline);
-    background-color: var(--m3-surface-container-lowest);
-    color: var(--m3-on-surface-variant);
-    font: var(--m3-body-medium-font);
-    min-width: 120px;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23${(getComputedStyle(document.documentElement).getPropertyValue('--m3-on-surface-variant-rgb').trim().split(',').map(c => parseInt(c).toString(16).padStart(2, '0')).join(''))}'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 1.2em;
-    padding-right: 30px;
-}
-.m3-table-select:focus {
-    outline: 2px solid var(--m3-primary);
-    border-color: var(--m3-primary);
-}
-.m3-table-select option {
-    background-color: var(--m3-surface-container-lowest);
-    color: var(--m3-on-surface);
 }
 
-/* Snackbar / Notification Styles */
-.m3-snackbar-container {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
+/* Special State Cards (Rendered instead of carousel, not inside it) */
+.event-card.loading-card, .event-card.special-state-card {
+    /* These are not part of the carousel itself, but are rendered in its place */
+    /* They should not have the carousel specific styles like transform or active states */
+    /* General card styling is inherited, but specific carousel interactions are not */
+    border-left: none; /* Override default .event-card border */
+    box-shadow: var(--m3-elevation-1); /* Standard card shadow */
+    width: 100%; /* Ensure it takes full width if rendered in carousel area */
+    margin: 0 auto; /* Center if its parent is wider for some reason (shouldn't be) */
+    background-color: var(--m3-surface-container-lowest);
+    /* Reset any potential transform from .event-card--active if classes get mixed up */
+    transform: none;
+}
+.event-card.special-state-card > .m3-card__content {
+    overflow-y: visible; /* Special cards might not need internal scroll */
+    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    width: max-content;
-    min-width: 288px;
-    max-width: calc(100% - 32px);
-}
-
-.m3-notification {
-    background-color: var(--m3-inverse-surface);
-    color: var(--m3-inverse-on-surface);
-    padding: 14px 16px;
-    border-radius: var(--m3-shape-corner-xs);
-    box-shadow: var(--m3-elevation-3);
-    font: var(--m3-body-medium-font);
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-    text-align: left;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-}
-
-.m3-notification.show {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-.m3-notification.success { background-color: #4CAF50; color: white; }
-.m3-notification.error { background-color: var(--m3-error-container); color: var(--m3-on-error-container); }
-.m3-notification.info { background-color: #2196F3; color: white; }
-.m3-notification.warning { background-color: #FF9800; color: black; }
-
-
-/* Table row highlighting */
-#pressureEventsTable tbody tr.highlighted-automated-event-row td {
-    background-color: rgba(var(--m3-primary-rgb), 0.12) !important;
-    color: var(--m3-on-surface) !important;
-}
-#pressureEventsTable tbody tr:not(.highlighted-automated-event-row):not(.current-event):hover td {
-    background-color: rgba(var(--m3-on-surface-rgb), 0.04);
-}
-#pressureEventsTable tbody tr.current-event td {
-    font-weight: 500;
-    background-color: rgba(var(--m3-primary-rgb), 0.08) !important;
-    color: var(--m3-on-surface) !important;
-}
-#pressureEventsTable tbody tr.current-event:hover td {
-    background-color: rgba(var(--m3-primary-rgb), 0.12) !important;
-}
-#pressureEventsTable tbody tr.current-event.highlighted-automated-event-row td {
-    background-color: rgba(var(--m3-primary-rgb), 0.16) !important;
-}
-
-.automated-events-controls {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-}
-/* Styling for the new toggle switch */
-.m3-toggle-switch-container {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    gap: 12px;
-    padding: 8px 0;
-}
-
-.m3-toggle-switch-input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    position: absolute;
-}
-
-.m3-toggle-switch-label {
-    position: relative;
-    display: inline-block;
-    width: 52px;
-    height: 32px;
-}
-
-.m3-toggle-switch-track {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--m3-surface-container-highest);
-    border: 2px solid var(--m3-outline);
-    transition: background-color .2s ease-out, border-color .2s ease-out;
-    border-radius: 16px;
-}
-
-.m3-toggle-switch-thumb-container {
-    position: absolute;
-    display: flex;
     justify-content: center;
-    align-items: center;
-    top: 4px;
-    left: 4px;
-    width: 24px;
-    height: 24px;
-    transition: transform .2s ease-out;
 }
+.event-card.special-state-card .m3-card__title { margin-bottom: 10px; }
+.event-card.special-state-card.warning { background-color: var(--m3-tertiary-container-semitransparent); }
+.event-card.special-state-card.warning .m3-card__title { color: var(--m3-on-tertiary-container); }
+.event-card.special-state-card.error { background-color: var(--m3-error-container-semitransparent); }
+.event-card.special-state-card.error .m3-card__title { color: var(--m3-on-error-container); }
 
-.m3-toggle-switch-thumb {
-    display: block;
-    width: 16px;
-    height: 16px;
-    background-color: var(--m3-outline);
-    border-radius: 50%;
-    transition: background-color .2s ease-out, width .2s ease-out, height .2s ease-out; /* Added width/height transition */
-    box-shadow: var(--m3-elevation-1);
-}
+.event-card.special-state-card #refreshDataButton.m3-button-filled { margin-top: 12px; }
+.event-card.special-state-card.warning #refreshDataButton.m3-button-filled { background-color: var(--m3-tertiary); color: var(--m3-on-tertiary); }
+.event-card.special-state-card.error #refreshDataButton.m3-button-filled { background-color: var(--m3-error); color: var(--m3-on-error); }
 
-.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-track {
-    background-color: var(--m3-primary);
-    border-color: var(--m3-primary);
-}
+/* Adjustments for the section holding the carousel */
+#pressure-events-section.m3-card { min-height: 250px; }
 
-.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-thumb-container {
-    transform: translateX(20px);
-}
-
-.m3-toggle-switch-input:checked + .m3-toggle-switch-label .m3-toggle-switch-thumb {
-    background-color: var(--m3-on-primary);
-    width: 24px; /* Thumb expands when checked */
-    height: 24px;
-}
-
-.m3-toggle-switch-input:not(:checked):hover + .m3-toggle-switch-label .m3-toggle-switch-thumb {
-    background-color: var(--m3-on-surface-variant);
-}
-.m3-toggle-switch-input:checked:hover + .m3-toggle-switch-label .m3-toggle-switch-thumb {
-    background-color: var(--m3-primary-container);
-}
-
-.m3-toggle-switch-input:focus-visible + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before {
-    content: "";
-    position: absolute;
-    left: -8px;
-    top: -8px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: currentColor;
-    opacity: 0.12;
-    pointer-events: none;
-}
-.m3-toggle-switch-input:checked:focus-visible + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before {
-    color: var(--m3-primary);
-}
-.m3-toggle-switch-input:not(:checked):focus-visible + .m3-toggle-switch-label .m3-toggle-switch-thumb-container::before {
-    color: var(--m3-on-surface);
-}
-
-.m3-toggle-switch-text-label {
-    font: var(--m3-label-large-font);
-    color: var(--m3-on-surface);
-    cursor: pointer;
+/* Ensure proper color definitions for semi-transparent backgrounds */
+:root {
+    --m3-tertiary-container-semitransparent: rgba(var(--m3-tertiary-container-rgb), 0.5);
+    --m3-error-container-semitransparent: rgba(var(--m3-error-container-rgb), 0.5);
 }
 /* filename: css/components.css */

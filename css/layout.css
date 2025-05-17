@@ -1,59 +1,85 @@
 /* css/layout.css */
 /* Top App Bar */
 .m3-top-app-bar {
-    background-color: var(--m3-surface-container-low);
-    color: var(--m3-on-surface-variant);
-    padding: 8px 16px;
-    height: 64px;
+    background-color: var(--m3-surface-container);
+    color: var(--m3-on-surface);
+    padding: 0 16px;
+    height: 56px; /* Mobile Top App Bar height */
     display: flex;
     align-items: center;
-    box-shadow: var(--m3-elevation-0);
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 100;
+    box-shadow: var(--m3-elevation-1);
 }
 
 .m3-top-app-bar__title {
-    font-family: var(--m3-title-large-font-family);
-    font-weight: var(--m3-title-large-font-weight);
-    font-size: var(--m3-title-large-font-size);
-    line-height: var(--m3-title-large-line-height);
-    letter-spacing: var(--m3-title-large-letter-spacing);
+    font: var(--m3-title-medium-font);
     margin: 0;
+    flex-grow: 1;
 }
 
 /* Main Content Area */
 .m3-main-content {
-    padding: 16px;
+    padding: 8px;
+    padding-top: 64px; /* 56px app bar + 8px top padding */
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    flex: 1 0 auto; /* Allows main content to grow and fill space */
-    overflow: hidden; /* Prevent main content itself from scrolling if children are managed */
+    flex: 1;
+    gap: 8px;
+    overflow: hidden;
+    min-height: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-/* Specific styling for the pressure events section card to manage its height */
+#pressure-chart-section.m3-card {
+    flex-shrink: 0;
+}
+
+.chart-controls-card.m3-card {
+    padding: 8px 12px;
+    margin-top: 0;
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+.chart-controls-card .m3-card__content {
+    padding: 0;
+}
+
 #pressure-events-section.m3-card {
+    flex-grow: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Allows this card to take up available vertical space in main-content */
-    min-height: 0; /* Important for flex children, prevents it from overflowing its container */
-    /* max-height: can be set if you want to cap its growth, e.g. max-height: 60vh; */
+    /* padding: 0; /* Outer card padding might interfere with full-width carousel needs */
+}
+/* The direct .m3-card__content child of the events section card */
+#pressure-events-section.m3-card > .m3-card__content {
+    flex-grow: 1;
+    min-height: 0;
+    display: flex; /* This allows .focused-event-carousel-container to flex-grow */
+    flex-direction: column; /* Stack carousel if other elements were here */
+    padding: 0; /* Remove padding here, carousel container will have its own */
+    overflow: hidden; /* Ensure it clips content */
 }
 
 
-/* Footer */
-.m3-footer {
-    background-color: var(--m3-surface-container-low);
-    color: var(--m3-on-surface-variant);
-    padding: 16px;
-    text-align: center;
-    font-size: var(--m3-label-large-font-size);
-    /* margin-top: auto; /* This might not be needed if main-content flex correctly pushes it down */
+html, body {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
-.m3-footer p { margin: 0; }
-
-
-/* Responsive adjustments for layout */
-@media (max-width: 7
+body.m3-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    /* overflow-y: auto; /* Generally not needed here if main-content handles its scroll */
+    background-color: var(--m3-surface);
+}
+/* filename: css/layout.css */

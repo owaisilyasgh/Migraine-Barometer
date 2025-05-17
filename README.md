@@ -6,23 +6,22 @@ This project is hosted on GitHub Pages: [Visit Migraine Barometer](https://owais
 
 ## Features
 
-*   **Barometric Pressure Display:** Shows current and historical surface pressure data using the Highcharts library for a pre-set location (mock data used in this version).
-*   **Automated Pressure Event Detection:** Identifies significant pressure changes (rises, falls, ongoing trends) from the data and lists them in a table.
-    *   **Event Highlighting:** Clicking on a detected event in the table highlights the corresponding time range on the pressure chart for easier visual correlation.
-    *   **Merge/Unmerge Events:** Users can select two detected automated events and merge them into a single, combined event. Merged events can also be unmerged back into their original components. This is useful for custom grouping.
-*   **PWA:** Installable on compatible devices for an app-like experience and offline access to the basic app shell and cached data (though data updates require an internet connection).
-*   **Migraine Logging:** Allows users to log migraine events with start and end times.
+*   **Barometric Pressure Display:** Shows current and historical surface pressure data fetched from a live weather API, visualized using the Highcharts library. The app uses device geolocation if available, otherwise default coordinates.
+*   **Automated Pressure Event Detection:** Identifies significant pressure changes (rises, falls, ongoing trends) from the data and lists them. This list transforms into a touch-friendly card carousel on mobile devices.
+    *   **Event Highlighting:** Clicking on a detected event highlights the corresponding time range on the pressure chart for easier visual correlation.
+*   **PWA:** Installable on compatible devices for an app-like experience and offline access to the basic app shell and cached data (though fresh data updates require an internet connection).
+*   **Migraine Logging:** Allows users to log their migraine events with start and end times and associate severity with detected pressure events.
 
 ## How It Works
 
-1.  **Data Loading:** The app loads hourly surface pressure data (from `mock_pressure_data.json` in this version).
+1.  **Data Loading:** The app loads hourly surface pressure data from the Open-Meteo weather API. It attempts to use the device's geolocation for precise data; if unavailable or denied, it uses default coordinates. Data is cached to minimize API calls and improve performance.
 2.  **Charting:** Pressure data is visualized using the Highcharts library.
-3.  **Automated Event Detection:** The system analyzes the pressure data to find periods of significant rise or fall. These are displayed in a table.
+3.  **Automated Event Detection:** The system analyzes the pressure data to find periods of significant rise or fall. These are displayed in a table or mobile-friendly cards.
 4.  **Event Interaction:**
-    *   Clicking an event row in the table highlights the event's duration on the chart using a plot band.
-    *   Users can select two events from the "Detected Pressure Events (Automated)" table and merge them. The system calculates the combined duration and overall pressure change. A merged event can be selected and unmerged to revert to its original constituent events.
-5.  **Migraine Logging:** Users can log their migraine events, providing start/end times. This data is stored locally in the browser's `localStorage`.
-6.  **Correlation (Manual):** Users can visually compare their logged migraines with the charted pressure data and the list of automatically detected (and potentially merged/unmerged) pressure events.
+    *   Clicking an event row/card highlights the event's duration on the chart using a plot band.
+    *   Users can toggle the display of all detected events on the chart.
+5.  **Migraine Logging:** Users can log their migraine severity directly against detected pressure events. This data is stored locally in the browser's `localStorage`.
+6.  **Correlation (Manual):** Users can visually compare their logged migraines with the charted pressure data and the list of automatically detected pressure events.
 
 ## Technical Details
 
@@ -30,10 +29,11 @@ This project is hosted on GitHub Pages: [Visit Migraine Barometer](https://owais
 *   **JavaScript Structure:** Organized into ES6 modules located in the `js/` directory, promoting better code organization and maintainability.
 *   **PWA:** Service Worker for basic caching and offline capabilities, Web App Manifest.
 *   **Charting:** [Highcharts](https://www.highcharts.com/) library for displaying pressure data and highlighting event ranges.
+*   **Data Source:** [Open-Meteo API](https://open-meteo.com/) for surface pressure data.
 *   **Data Storage:**
-    *   `localStorage` for migraine logs.
-    *   Automated pressure events (including their merged/unmerged states) are managed in JavaScript memory and are session-specific (not persisted between page loads).
-*   **Mock Data:** Uses `mock_pressure_data.json` for barometric pressure data. In a real application, this would typically come from a weather API.
+    *   `localStorage` for migraine logs and user preferences.
+    *   Pressure data from the API is cached in `localStorage` to reduce API calls and for faster loading.
+    *   Automated pressure events are managed in JavaScript memory and re-calculated when data updates.
 
 ## Setup and Usage
 
@@ -48,19 +48,19 @@ This project is hosted on GitHub Pages: [Visit Migraine Barometer](https://owais
 
 **Project Structure Overview:**
 *   `index.html`: The main HTML file.
-*   `style.css`: Styles for the application.
+*   `css/`: Directory with CSS files (`m3-core.css`, `layout.css`, `components.css`, `chart.css`).
 *   `manifest.json`: Web App Manifest for PWA properties.
-*   `sw.js`: Service Worker file (ensure this is present in your root if you intend for PWA offline capabilities to function beyond basic app shell caching).
-*   `mock_pressure_data.json`: Sample pressure data.
+*   `sw.js`: Service Worker file for caching and offline capabilities.
 *   `js/`: Directory containing the JavaScript modules:
     *   `app.js`: Main application logic and coordinator.
     *   `chartManager.js`: Manages Highcharts interactions.
     *   `pressureEventManager.js`: Handles detection and manipulation of pressure events.
     *   `uiRenderer.js`: Manages DOM updates and UI rendering.
-    *   `db.js`: localStorage interaction for migraines.
+    *   `db.js`: localStorage interaction.
+    *   `dataService.js`: Fetches and caches data from the API.
     *   `config.js`: Application constants.
     *   `utils.js`: Utility functions.
-*   `icons/`: (You may need to create this folder and add PWA icons as specified in `manifest.json`).
+*   `icons/`: PWA icons as specified in `manifest.json`.
 
 **Deployment:**
 
@@ -68,17 +68,18 @@ This app can be deployed on platforms like GitHub Pages or any static site hosti
 
 ## Future Considerations / Potential Improvements
 
-*   User-configurable location and live API data fetching for pressure data.
-*   Persistence for merged/unmerged states of automated events (e.g., using `localStorage` or a backend).
-*   More sophisticated algorithm for automated event detection.
+*   User-configurable API settings or choice of weather providers.
+*   Persistence for custom user-defined events (if this feature were added).
+*   More sophisticated algorithm for automated event detection, potentially user-tunable.
 *   Data export/import functionality for migraine logs.
 *   Notifications for specific pressure patterns (if desired).
-*   Enhanced PWA features, including more robust offline data access for pressure events.
+*   Enhanced PWA features, including more robust offline data access for pressure events if API allows.
 
 ## Attribution
 
 *   Charting library: [Highcharts](https://www.highcharts.com/)
-*   Mock weather data format based on [Open-Meteo.com](https://open-meteo.com/). If using their live API, please respect their terms of service.
+*   Weather data from [Open-Meteo.com](https://open-meteo.com/). Please respect their terms of service.
 
 ---
 *Disclaimer: This application is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.*
+<!-- filename: README.md -->

@@ -1,4 +1,6 @@
+// filename: js/db.js
 // js/db.js - Simple localStorage wrapper as an ES6 module
+import * as G_CONFIG from './config.js'; // G_CONFIG stands for Global Config
 
 /**
  * Saves data to localStorage.
@@ -7,15 +9,15 @@
  */
 export function saveData(key, data) {
     if (typeof key !== 'string' || key.trim() === '') {
-        console.error('Error saving data: Key must be a non-empty string.');
+        if (G_CONFIG.DEBUG_MODE) console.error('DB Error: Key must be a non-empty string for saveData.');
         return;
     }
     try {
         localStorage.setItem(key, JSON.stringify(data));
+        if (G_CONFIG.DEBUG_MODE) console.log(`DB: Data saved for key "${key}"`, data);
     } catch (error) {
-        console.error(`Error saving data for key "${key}":`, error);
+        if (G_CONFIG.DEBUG_MODE) console.error(`DB Error: Saving data for key "${key}":`, error);
         // Potentially handle quota exceeded errors more gracefully
-        // For example, by notifying the user or attempting to clear older, less critical data.
     }
 }
 
@@ -26,17 +28,20 @@ export function saveData(key, data) {
  */
 export function loadData(key) {
     if (typeof key !== 'string' || key.trim() === '') {
-        console.error('Error loading data: Key must be a non-empty string.');
+        if (G_CONFIG.DEBUG_MODE) console.error('DB Error: Key must be a non-empty string for loadData.');
         return null;
     }
     try {
         const dataString = localStorage.getItem(key);
         if (dataString === null) {
+            if (G_CONFIG.DEBUG_MODE) console.log(`DB: No data found for key "${key}".`);
             return null; // Key not found
         }
-        return JSON.parse(dataString);
+        const parsedData = JSON.parse(dataString);
+        if (G_CONFIG.DEBUG_MODE) console.log(`DB: Data loaded for key "${key}"`, parsedData);
+        return parsedData;
     } catch (error) {
-        console.error(`Error loading or parsing data for key "${key}":`, error);
+        if (G_CONFIG.DEBUG_MODE) console.error(`DB Error: Loading or parsing data for key "${key}":`, error);
         return null; // Return null on parsing error or other issues
     }
 }
@@ -47,14 +52,14 @@ export function loadData(key) {
  */
 export function removeData(key) {
     if (typeof key !== 'string' || key.trim() === '') {
-        console.error('Error removing data: Key must be a non-empty string.');
+        if (G_CONFIG.DEBUG_MODE) console.error('DB Error: Key must be a non-empty string for removeData.');
         return;
     }
     try {
         localStorage.removeItem(key);
+        if (G_CONFIG.DEBUG_MODE) console.log(`DB: Data removed for key "${key}".`);
     } catch (error) {
-        console.error(`Error removing data for key "${key}":`, error);
+        if (G_CONFIG.DEBUG_MODE) console.error(`DB Error: Removing data for key "${key}":`, error);
     }
 }
-
 // filename: js/db.js
