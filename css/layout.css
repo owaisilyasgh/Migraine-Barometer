@@ -40,14 +40,14 @@
 }
 
 .chart-controls-card.m3-card {
-    /* Minimal height, content drives it */
+    height: 60px;
 }
 .chart-controls-card .m3-card__content {
-    padding: 8px 16px; /* Reduced padding for compact controls */
+     /* Reduced padding for compact controls */
 }
 
 #pressure-events-section.m3-card {
-    min-height: 250px; /* Ensure space for carousel elements */
+    min-height: 400px; /* Ensure space for carousel elements */
     /* padding: 0; /* Outer card padding might interfere with full-width carousel needs - NOW HANDLED BY .m3-card */
     display: flex; /* Added for consistency, enables flex behavior if needed */
     flex-direction: column;
@@ -91,4 +91,3 @@ body.m3-body {
 .m3-main-content {
     flex-grow: 1; /* Ensure main content takes available space pushing footer down if any */
 }
-/* filename: css/layout.css */
