@@ -30,7 +30,6 @@
     fill: transparent !important; /* Plot area background, often best transparent */
 }
 
-
 /* Tooltip Styles - M3 Compliant */
 /* This rule styles the <span> that Highcharts wraps HTML content in when useHTML:true */
 /* The !important flags are crucial here to override any inline styles Highcharts might still attempt to apply. */
@@ -42,36 +41,33 @@
     padding: 8px !important; /* M3 standard padding */
     box-shadow: var(--m3-elevation-2) !important; /* Add subtle shadow to tooltip */
     font-family: var(--m3-font-family-plain, sans-serif) !important; /* Base font for tooltip text */
-    /* Setting width/max-width can be useful if tooltips become too wide or narrow */
-    /* width: auto; max-width: 300px; */
+    min-width: 180px; /* Adjusted for single line date/time */
+    max-width: 300px; /* Allow it to grow if needed */
+    box-sizing: border-box; /* Ensure padding and border are included in width/height */
 }
 
 /* Styling for specific elements within the custom HTML tooltip */
-.highcharts-tooltip .tooltip-date {
+.highcharts-tooltip .tooltip-datetime { /* Changed from tooltip-date */
     font: var(--m3-label-medium-font); /* e.g., 12px/500 weight */
-    margin-bottom: 4px;
-    /* color is inherited from .highcharts-tooltip > span */
-}
-.highcharts-tooltip .tooltip-date b {
-    font-weight: var(--m3-label-medium-font-weight, 500);
+    color: var(--m3-inverse-on-surface) !important; /* Ensure text color is consistent */
+    display: block; /* Ensure it takes full width of its line */
+    margin-bottom: 4px; /* Space between date/time and value line */
 }
 
-.highcharts-tooltip .tooltip-time {
-    font: var(--m3-body-small-font); /* e.g., 12px/400 weight */
-    margin-bottom: 6px;
-    /* color is inherited */
+.highcharts-tooltip .tooltip-datetime b {
+    /* font-weight still applies */
 }
+
+/* Removed .tooltip-time as it's integrated into .tooltip-datetime */
 
 .highcharts-tooltip .tooltip-point-data {
     font: var(--m3-body-small-font); /* e.g., 12px/400 weight for the entire line */
-    /* color is inherited */
+    color: var(--m3-inverse-on-surface) !important; /* Ensure text color */
 }
 
 .highcharts-tooltip .tooltip-value { /* Targets the <b> tag for pressure value */
-    font-weight: var(--m3-label-medium-font-weight, 500);
-    /* color is inherited */
+    font-weight: bold; /* Keep value bold if desired */
 }
-
 
 /* Export Menu styles removed as menu is disabled */
 
@@ -87,14 +83,14 @@
 /* This is the direct container for Highcharts initialization */
 #pressureChart {
     height: 100%; /* Make the chart instance fill its parent .large-chart-container */
-    width: 100%;
 }
 
 .large-chart-container {
     height: 280px; /* Defined height for the chart's viewport */
     min-height: 50px; /* Prevent it from becoming too small on extreme resizes if parent shrinks */
+    /* Ensure it provides a containing block for absolutely positioned elements if any */
+    position: relative;
 }
-
 /* Current time plot line style - label removed from chartManager */
 /* .highcharts-plot-line.current-time-line .highcharts-plot-line-label { ... } */
-/* filename: css/chart.css */
+// filename: css/chart.css
