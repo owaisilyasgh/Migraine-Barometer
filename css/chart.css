@@ -2,44 +2,76 @@
 /* Highcharts specific overrides for M3 */
 .highcharts-root {
     font-family: var(--m3-font-family-plain, sans-serif) !important; /* Ensure M3 font is applied */
+    background-color: transparent !important; /* Ensure chart doesn't set its own opaque background */
 }
 
+/* Titles, labels etc. */
 .highcharts-title, .highcharts-subtitle, .highcharts-axis-title, .highcharts-axis-labels, .highcharts-legend-item text {
     fill: var(--m3-on-surface-variant) !important; /* For most chart text elements */
     font-family: inherit !important; /* Inherit from .highcharts-root */
 }
+.highcharts-title { font-size: 1.1em; /* Adjust if needed */}
 
+/* Axis lines and ticks */
 .highcharts-axis-line, .highcharts-tick {
     stroke: var(--m3-outline-variant) !important; /* Axis lines and ticks */
 }
 
+/* Backgrounds */
 .highcharts-background {
-    fill: var(--m3-surface-container-lowest) !important; /* Chart background */
+    /* This is chart's own background rect.
+       It's better for this to be transparent if the card underneath provides the bg.
+       If the chart NEEDS its own solid bg different from card, define here.
+       For elevated card design, we want card's bg to show.
+    */
+    fill: transparent !important; /* Chart background */
 }
-
 .highcharts-plot-background {
     fill: transparent !important; /* Plot area background, often best transparent */
 }
 
-/* Tooltip Styles */
+
+/* Tooltip Styles - M3 Compliant */
+/* This rule styles the <span> that Highcharts wraps HTML content in when useHTML:true */
+/* The !important flags are crucial here to override any inline styles Highcharts might still attempt to apply. */
 .highcharts-tooltip > span {
     background-color: rgba(var(--m3-inverse-surface-rgb), 0.9) !important; /* M3 Inverse Surface with slight transparency */
     color: var(--m3-inverse-on-surface) !important; /* M3 Inverse On Surface for text */
-    border: 1px solid transparent !important; /* No border, rely on shadow */
+    border: none !important; /* Ensure no border is drawn by the span itself */
     border-radius: var(--m3-shape-corner-sm) !important; /* 8px M3 corner */
     padding: 8px !important; /* M3 standard padding */
-    box-shadow: var(--m3-elevation-2); /* Add subtle shadow to tooltip */
-    font-family: var(--m3-font-family-plain, sans-serif) !important;
+    box-shadow: var(--m3-elevation-2) !important; /* Add subtle shadow to tooltip */
+    font-family: var(--m3-font-family-plain, sans-serif) !important; /* Base font for tooltip text */
+    /* Setting width/max-width can be useful if tooltips become too wide or narrow */
+    /* width: auto; max-width: 300px; */
 }
-.highcharts-tooltip > span div:first-child { /* Tooltip Header (Date/Time) */
-    font-weight: var(--m3-label-large-font-weight) !important;
+
+/* Styling for specific elements within the custom HTML tooltip */
+.highcharts-tooltip .tooltip-date {
+    font: var(--m3-label-medium-font); /* e.g., 12px/500 weight */
+    margin-bottom: 4px;
+    /* color is inherited from .highcharts-tooltip > span */
 }
-.highcharts-tooltip .tooltip-series-name { /* Tooltip Series Name */
-    font-weight: normal !important;
+.highcharts-tooltip .tooltip-date b {
+    font-weight: var(--m3-label-medium-font-weight, 500);
 }
-.highcharts-tooltip table td b { /* Tooltip Value */
-    font-weight: 500; /* M3 Medium weight for emphasis */
+
+.highcharts-tooltip .tooltip-time {
+    font: var(--m3-body-small-font); /* e.g., 12px/400 weight */
+    margin-bottom: 6px;
+    /* color is inherited */
 }
+
+.highcharts-tooltip .tooltip-point-data {
+    font: var(--m3-body-small-font); /* e.g., 12px/400 weight for the entire line */
+    /* color is inherited */
+}
+
+.highcharts-tooltip .tooltip-value { /* Targets the <b> tag for pressure value */
+    font-weight: var(--m3-label-medium-font-weight, 500);
+    /* color is inherited */
+}
+
 
 /* Export Menu styles removed as menu is disabled */
 
@@ -50,11 +82,16 @@
     width: 100%; /* Ensure chart container takes full width */
     border-radius: var(--m3-shape-corner-sm); /* Match card internal rounding if needed */
     overflow: hidden; /* Ensure chart respects border radius */
-    background-color: var(--m3-surface-container-lowest); /* Match card bg if needed */
+}
+
+/* This is the direct container for Highcharts initialization */
+#pressureChart {
+    height: 100%; /* Make the chart instance fill its parent .large-chart-container */
+    width: 100%;
 }
 
 .large-chart-container {
-    height: 280px; /* Further reduced height to better fit card */
+    height: 280px; /* Defined height for the chart's viewport */
     min-height: 50px; /* Prevent it from becoming too small on extreme resizes if parent shrinks */
 }
 

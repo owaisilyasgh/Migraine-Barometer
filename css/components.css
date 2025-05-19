@@ -2,34 +2,32 @@
 
 /* Card Styles */
 .m3-card {
-    background-color: var(--m3-surface-container-lowest);
+    background-color: var(--m3-surface-container-low); /* M3 elevated card background */
+    color: var(--m3-on-surface-variant); /* Default text color for card content */
     border-radius: var(--m3-shape-corner-md); /* 12px */
     padding: 16px; /* Standard M3 card padding */
-    box-shadow: var(--m3-elevation-1);
+    box-shadow: var(--m3-elevation-1); /* M3 elevation for cards */
     overflow: hidden; /* If content might overflow rounded corners, typically good for cards */
     display: flex; /* Added for flex-direction and potential alignment */
     flex-direction: column; /* Stack title and content vertically */
 }
+
 .m3-card__title {
-    font: var(--m3-title-large-font);
-    color: var(--m3-on-surface);
-    margin-top: 0;
-    margin-bottom: 16px;
+    font: var(--m3-title-medium-font); /* M3 card title style */
+    color: var(--m3-on-surface); /* Titles are typically more prominent */
+    margin-bottom: 8px; /* Space between title and content */
+    padding: 0; /* Padding is on parent card */
 }
+
 .m3-card__content {
-    font: var(--m3-body-medium-font);
-    color: var(--m3-on-surface-variant);
+    font: var(--m3-body-medium-font); /* M3 card content style */
     flex-grow: 1; /* Allows content to take available space if card has fixed height or flex parent */
-    /* If content itself needs to scroll within the card, add:
-       overflow-y: auto;
-       max-height: some_value; (if card itself doesn't have a constrained height)
-    */
 }
 .m3-card__content p { margin-top: 0; margin-bottom: 8px; }
 .m3-card__content p:last-child { margin-bottom: 0; }
 
 
-/* Button Styles (no changes) */
+/* Button Styles */
 .m3-button { font: var(--m3-label-large-font); color: var(--m3-primary); background-color: transparent; border: 1px solid transparent; min-height: 40px; padding: 0 24px; border-radius: var(--m3-shape-corner-full); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-transform: none; transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out; position: relative; overflow: hidden; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 .m3-button:disabled, .m3-button[disabled] { opacity: 0.38; cursor: default; box-shadow: none !important; }
 .m3-button-filled { background-color: var(--m3-primary); color: var(--m3-on-primary); box-shadow: var(--m3-elevation-0); }
@@ -44,15 +42,13 @@
 .m3-button-icon .material-icons { font-size: 24px; color: var(--m3-primary); }
 .m3-button-icon:disabled .material-icons, .m3-button-icon[disabled] .material-icons { color: rgba(var(--m3-on-surface-rgb), 0.38); }
 .m3-ripple { position: absolute; border-radius: 50%; background-color: currentColor; opacity: 0.2; transform: scale(0); animation: m3-ripple-animation 0.6s linear; pointer-events: none; }
-@keyframes m3-ripple-animation { to { transform: scale(4); opacity: 0; } }
 
-/* Select used in cards (no changes) */
+/* Select used in cards */
 .m3-table-select { font: var(--m3-body-medium-font); color: var(--m3-on-surface); background-color: var(--m3-surface-container-lowest); border: 1px solid var(--m3-outline-variant); border-radius: var(--m3-shape-corner-xs); padding: 8px 32px 8px 12px; min-width: 120px; height: 40px; line-height: normal; width: 100%; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23${'var(--m3-on-surface-variant-rgb)'.replace(/[^\w\s]/gi, '').replace(/\s/g, '').substring(0,6)}'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 18px; box-sizing: border-box; flex-shrink: 0; }
 .m3-table-select:focus { border-color: var(--m3-primary); outline: 2px solid transparent; box-shadow: 0 0 0 2px var(--m3-primary); }
 .m3-table-select option { background-color: var(--m3-surface-container-highest); color: var(--m3-on-surface); }
 
-
-/* Snackbar / Notification Styles (no changes) */
+/* Snackbar / Notification Styles */
 .m3-snackbar-container { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column-reverse; align-items: center; gap: 8px; width: fit-content; max-width: calc(100% - 32px); pointer-events: none; }
 .m3-notification { background-color: var(--m3-inverse-surface); color: var(--m3-inverse-on-surface); padding: 14px 16px; border-radius: var(--m3-shape-corner-xs); box-shadow: var(--m3-elevation-3); font: var(--m3-body-medium-font); min-width: 288px; max-width: 568px; opacity: 0; transform: translateY(20px) scale(0.95); transition: opacity 0.3s ease-out, transform 0.3s ease-out; pointer-events: auto; }
 .m3-notification.show { opacity: 1; transform: translateY(0) scale(1); }
@@ -61,7 +57,7 @@
 .m3-notification.info { background-color: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
 .m3-notification.warning { background-color: #FF9800; color: black; }
 
-/* Controls for Chart (no changes) */
+/* Controls for Chart */
 .chart-controls-card .automated-events-controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0; width: 100%; flex-wrap: nowrap; }
 @media (max-width: 400px) { .chart-controls-card .automated-events-controls { flex-direction: column; align-items: flex-start; gap: 12px; } .chart-controls-card .automated-events-controls .return-to-current-btn { width: auto; align-self: flex-start; } }
 .m3-toggle-switch-container { display: inline-flex; align-items: center; cursor: pointer; user-select: none; gap: 8px; position: relative; }
@@ -81,162 +77,155 @@
 .chart-controls-card .return-to-current-btn { font: var(--m3-label-large-font); color: var(--m3-primary); padding: 0 12px 0 8px; min-height: 32px; }
 .chart-controls-card .return-to-current-btn .material-icons { margin-right: 4px; font-size: 20px; vertical-align: middle; }
 
-/* Event Carousel - Rewritten Core CSS */
-.focused-event-carousel-container { /* This is the VIEWPORT */
+
+/* Event Carousel */
+.focused-event-carousel-container { /* VIEWPORT */
     position: relative;
-    overflow: hidden;   /* CRITICAL: This clips cards outside the viewport */
-    width: 100%;        /* Takes full width of its parent */
-    flex-grow: 1;
-    padding-bottom: 50px; /* Space for bottom controls */
-    box-sizing: border-box;
-    /* MODIFICATION: Remove horizontal padding */
-    /* padding-left: 5px; */
-    /* padding-right: 5px; */
-}
-
-#pressure-events-section.m3-card > .m3-card__content {
-    /* This is the parent of .focused-event-carousel-container */
-    /* Styles defined in layout.css: flex-grow, min-height, display:flex, padding:0, overflow:hidden */
-}
-
-.event-card-wrapper { /* This is the SLIDING STRIP of cards */
-    display: flex;
-    height: 100%;  /* Fills the height of .focused-event-carousel-container (before its padding-bottom) */
-    transition: transform 0.3s ease-in-out;
-    /* NO width set - its width is sum of children */
-    /* NO overflow - must not clip cards */
-}
-
-.event-card { /* Each INDIVIDUAL card/slide */
-    width: 100%;        /* CRITICAL: Each card is 100% of the VIEWPORT's *inner* width */
-    flex-shrink: 0;     /* CRITICAL: Prevents cards from shrinking */
-    box-sizing: border-box;
-    height: 100%;       /* Fill the height of the wrapper */
-    background-color: var(--m3-surface-container-low); /* Card background */
-    border-radius: var(--m3-shape-corner-lg); /* 16px, more prominent for carousel cards */
-    display: flex;
-    flex-direction: column; /* For internal layout: title, then scrollable content */
-    padding: 12px;      /* Internal padding for the card's content */
-    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s ease-out;
-    border: 1px solid var(--m3-outline-variant); /* Default border for all sides */
-    border-left-width: 1px; /* Ensure this is explicitly set for default cases */
-    min-width: 0; /* Ensure flex item respects its width and doesn't get oversized */
-}
-
-.event-card--active {
-    /* transform: scale(1.02); *//* User removed this to ensure full card visibility */
-    box-shadow: var(--m3-elevation-3);
-    border-color: var(--m3-primary); /* Highlight border of active card */
-}
-
-/* Severity borders override the default border-left */
-.event-card.calm-period-card {
-    border-left: 1px solid var(--m3-outline-variant); /* Ensure it has a left border */
-}
-.event-card.severity-low { border-left: 4px solid var(--m3-primary); }
-.event-card.severity-medium { border-left: 4px solid #FF8C00; } /* Consider var(--m3-warning-or-similar) */
-.event-card.severity-high { border-left: 4px solid var(--m3-error); }
-.event-card.severity-minimal, .event-card.severity-unknown { border-left: 4px solid var(--m3-outline-variant); }
-
-/* Active card severity border color should match active border or severity color */
-.event-card--active.severity-low { border-left-color: var(--m3-primary); }
-.event-card--active.severity-medium { border-left-color: #FF8C00; }
-.event-card--active.severity-high { border-left-color: var(--m3-error); }
-.event-card--active.severity-minimal, .event-card--active.severity-unknown { border-left-color: var(--m3-outline); }
-
-
-/* This is the div *inside* an .event-card that holds the actual text content and select */
-.event-card > .m3-card__title { /* Title is direct child of .event-card, before .m3-card__content */
-    font: var(--m3-title-medium-font);
-    color: var(--m3-on-surface);
-    margin-bottom: 8px;
-    padding: 0; /* Padding is on .event-card */
-}
-.event-card > .m3-card__content { /* Scrollable content area within each card */
-    flex-grow: 1;
-    overflow-y: auto; /* Allows content to scroll if it exceeds card height */
-    overflow-x: hidden; /* Prevent horizontal content overflow from stretching the card */
-    padding: 0; /* Padding is on .event-card parent */
-    font: var(--m3-body-small-font); /* Slightly smaller for more density in cards */
-    color: var(--m3-on-surface-variant);
-}
-.event-card > .m3-card__content p {
-    margin-top: 0;
-    margin-bottom: 6px; /* Tighter spacing in cards */
-}
-.event-card > .m3-card__content p strong {
-    color: var(--m3-on-surface); /* Make strong text stand out a bit more */
-}
-.event-card .m3-table-select { /* Select is inside the scrollable .m3-card__content */
-    margin-top: 8px; /* Space above select */
-}
-.next-event-info {
-    font-style: italic;
-    font-size: var(--m3-body-small-font-size);
-    opacity: 0.9;
-    margin-top: 10px !important;
-}
-
-
-.carousel-bottom-controls {
-    position: absolute;
-    bottom: 10px; /* Position from bottom of viewport */
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    z-index: 2; /* Above cards */
-}
-.carousel-nav {
-    background-color: rgba(var(--m3-surface-rgb), 0.8);
-    border: 1px solid var(--m3-outline-variant);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    box-shadow: var(--m3-elevation-1);
-}
-.carousel-nav:hover { background-color: rgba(var(--m3-surface-rgb), 0.9); }
-.carousel-nav .material-icons { font-size: 24px; color: var(--m3-primary); }
-.carousel-nav:disabled { background-color: rgba(var(--m3-surface-rgb), 0.4);}
-.carousel-nav:disabled .material-icons { color: var(--m3-outline); }
-
-.carousel-position-indicator {
-    font: var(--m3-label-small-font);
-    color: var(--m3-on-surface-variant);
-    background-color: rgba(var(--m3-surface-rgb), 0.7);
-    padding: 4px 8px;
-    border-radius: var(--m3-shape-corner-xs);
-}
-
-/* Special State Cards (Rendered instead of carousel, not inside it) */
-.event-card.loading-card, .event-card.special-state-card {
-    /* These are not part of the carousel itself, but are rendered in its place */
-    /* They should not have the carousel specific styles like transform or active states */
-    /* General card styling is inherited, but specific carousel interactions are not */
-    border-left: none; /* Override default .event-card border */
-    box-shadow: var(--m3-elevation-1); /* Standard card shadow */
-    width: 100%; /* Ensure it takes full width if rendered in carousel area */
-    margin: 0 auto; /* Center if its parent is wider for some reason (shouldn't be) */
-    background-color: var(--m3-surface-container-lowest);
-    /* Reset any potential transform from .event-card--active if classes get mixed up */
-    transform: none;
-}
-.event-card.special-state-card > .m3-card__content {
-    overflow-y: visible; /* Special cards might not need internal scroll */
-    text-align: center;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
 }
-.event-card.special-state-card .m3-card__title { margin-bottom: 10px; }
+
+.event-card-wrapper { /* SLIDING STRIP of card slots */
+    display: flex;
+    flex-grow: 1;
+    height: calc(100% - 40px); /* Account for bottom controls height */
+    transition: transform 0.3s ease-in-out;
+}
+
+.event-card { /* Each INDIVIDUAL card SLOT - this is the 100% wide element */
+    width: 100%;
+    flex-shrink: 0;
+    height: 100%;
+    display: flex; /* For centering the inner-container */
+    align-items: center; /* Vertically center inner-container */
+    justify-content: center; /* Horizontally center inner-container */
+    /* Note: No background, padding, or shadow here. Those are on event-card-inner-container */
+}
+
+.event-card-inner-container { /* The actual VISIBLE card content */
+    /* Base styles are from .m3-card, which is applied in JS */
+    /* background-color, color, border-radius, box-shadow, padding are from .m3-card */
+    width: 90%; /* Reduced width as requested */
+    height: 95%; /* Slightly reduced height */
+    max-width: 450px; /* Optional: cap width on very wide screens for aesthetics */
+    
+    display: flex; /* For its own content: title + scrollable area */
+    flex-direction: column;
+    overflow: hidden; /* Crucial for border-radius to clip internal scrollable content */
+}
+
+/* Severity borders apply to the inner-container, targeted via classes on parent .event-card */
+.event-card.calm-period-card .event-card-inner-container {
+    /* border-left: 4px solid var(--m3-outline-variant); /* Optional: if calm needs a marker */
+}
+.event-card.severity-low .event-card-inner-container { border-left: 4px solid var(--m3-primary); }
+.event-card.severity-medium .event-card-inner-container { border-left: 4px solid #FF8C00; }
+.event-card.severity-high .event-card-inner-container { border-left: 4px solid var(--m3-error); }
+.event-card.severity-minimal .event-card-inner-container,
+.event-card.severity-unknown .event-card-inner-container { border-left: 4px solid var(--m3-outline-variant); }
+
+/* Active state: style the inner container when outer .event-card is active */
+.event-card.event-card--active .event-card-inner-container {
+    box-shadow: var(--m3-elevation-3); /* More pronounced shadow for active card */
+    /* transform: scale(1.02); /* Optional: Slight scale up. Use with caution due to layout shifts */
+}
+/* Active severity borders (color might not need to change if already distinct) */
+.event-card.event-card--active.severity-low .event-card-inner-container { border-left-color: var(--m3-primary); }
+.event-card.event-card--active.severity-medium .event-card-inner-container { border-left-color: #FF8C00; }
+.event-card.event-card--active.severity-high .event-card-inner-container { border-left-color: var(--m3-error); }
+.event-card.event-card--active.severity-minimal .event-card-inner-container,
+.event-card.event-card--active.severity-unknown .event-card-inner-container { border-left-color: var(--m3-outline); }
+
+
+/* Content styling within the event-card-inner-container */
+.event-card-inner-container > .m3-card__title {
+    /* Inherits from .m3-card__title */
+    /* padding: 0; /* Already set */
+    margin-bottom: 6px; /* Tighter for card layout */
+}
+
+.event-card-inner-container > .m3-card__content { /* Scrollable content area */
+    /* Inherits from .m3-card__content */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 4px 0 0; /* Add slight right padding if scrollbar appears, to avoid overlap */
+    font: var(--m3-body-small-font); /* Denser text */
+    flex-grow: 1; /* Ensures it takes available space */
+}
+
+.event-card-inner-container > .m3-card__content p {
+    margin-bottom: 6px;
+}
+.event-card-inner-container > .m3-card__content p strong {
+    color: var(--m3-on-surface);
+}
+.event-card-inner-container .m3-table-select { /* Select inside scrollable area */
+    margin-top: 8px;
+}
+
+.next-event-info {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.carousel-bottom-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 0;
+    width: 100%;
+    flex-shrink: 0;
+    height: 40px;
+}
+
+.carousel-dots-container {
+    display: flex;
+    justify-content: center; /* Center the group of dots */
+    align-items: center; /* Align dots vertically */
+    gap: 8px; /* Space between individual dots */
+    flex-grow: 1; /* Allow dots container to take space if needed, e.g. in flex controls */
+}
+
+.carousel-dots-container .dot {
+    width: 8px; /* Size of the dot */
+    height: 8px; /* Size of the dot */
+    border-radius: 50%; /* Make it circular */
+    background-color: var(--m3-outline-variant); /* Color for INACTIVE dots - should be visible */
+    border: none; /* Remove default button border */
+    padding: 0; /* Remove default button padding */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+}
+
+.carousel-dots-container .dot:hover {
+    background-color: var(--m3-on-surface-variant); /* Slightly darker/more prominent on hover for inactive dots */
+}
+
+.carousel-dots-container .dot.active {
+    background-color: var(--m3-primary); /* Color for the ACTIVE dot */
+    transform: scale(1.25); /* Make the active dot slightly larger */
+}
+
+
+/* Special State Cards (Rendered instead of carousel, not inside it) */
+/* .event-card.special-state-card uses .m3-card base for elevation and padding */
+.event-card.special-state-card {
+    /* Already has .m3-card. These styles make it behave like a single, non-carousel card */
+    border-left: none !important; /* Override any severity border for these */
+    width: calc(100% - 16px); /* Full width minus some margin */
+    margin: 8px; /* Centering via parent flex or auto margins isn't primary here */
+    /* height: auto; /* Content driven height */
+}
+
+.event-card.special-state-card > .m3-card__content {
+    overflow-y: visible; /* No internal scroll needed */
+    text-align: center;
+}
+
+.event-card.special-state-card .m3-card__title { margin-bottom: 10px; text-align: center; }
 .event-card.special-state-card.warning { background-color: var(--m3-tertiary-container-semitransparent); }
 .event-card.special-state-card.warning .m3-card__title { color: var(--m3-on-tertiary-container); }
 .event-card.special-state-card.error { background-color: var(--m3-error-container-semitransparent); }
@@ -246,12 +235,4 @@
 .event-card.special-state-card.warning #refreshDataButton.m3-button-filled { background-color: var(--m3-tertiary); color: var(--m3-on-tertiary); }
 .event-card.special-state-card.error #refreshDataButton.m3-button-filled { background-color: var(--m3-error); color: var(--m3-on-error); }
 
-/* Adjustments for the section holding the carousel */
-#pressure-events-section.m3-card { min-height: 250px; }
-
-/* Ensure proper color definitions for semi-transparent backgrounds */
-:root {
-    --m3-tertiary-container-semitransparent: rgba(var(--m3-tertiary-container-rgb), 0.5);
-    --m3-error-container-semitransparent: rgba(var(--m3-error-container-rgb), 0.5);
-}
 /* filename: css/components.css */

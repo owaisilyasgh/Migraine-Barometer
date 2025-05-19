@@ -1,26 +1,29 @@
-// filename: js/uiRenderer.js
-import * as G_CONFIG from './config.js';
+// js/uiRenderer.js
+import * as _G_CONFIG from './config.js'; 
+const G_CONFIG = _G_CONFIG;
 import { formatUnixTimestamp, createRipple } from './utils.js';
 
 // Callbacks to app.js
 let onEventMigraineChangeAppCallback = null;
 let onShowAllEventsToggleAppCallback = null;
 let onReturnToCurrentAppCallback = null;
-let onSwipeEventAppCallback = null; // Callback when card is swiped to
+let onSwipeEventAppCallback = null;
 let onRefreshDataAppCallback = null;
 
 // Carousel State
-let eventCardsData = []; // All events data for the carousel
+let eventCardsData = [];
 let currentCardIndex = 0;
 let touchStartX = 0;
 let touchEndX = 0;
+let isSwiping = false;
+
 
 export function setAppCallbacks(callbacks) {
-    if (callbacks.onEventMigraineChange) onEventMigraineChangeAppCallback = callbacks.onEventMigraineChange;
-    if (callbacks.onShowAllEventsToggle) onShowAllEventsToggleAppCallback = callbacks.onShowAllEventsToggle;
-    if (callbacks.onReturnToCurrent) onReturnToCurrentAppCallback = callbacks.onReturnToCurrent;
-    if (callbacks.onSwipeEvent) onSwipeEventAppCallback = callbacks.onSwipeEvent;
-    if (callbacks.onRefreshData) onRefreshDataAppCallback = callbacks.onRefreshData;
+    onEventMigraineChangeAppCallback = callbacks.onEventMigraineChange;
+    onShowAllEventsToggleAppCallback = callbacks.onShowAllEventsToggle;
+    onReturnToCurrentAppCallback = callbacks.onReturnToCurrent;
+    onSwipeEventAppCallback = callbacks.onSwipeEvent;
+    onRefreshDataAppCallback = callbacks.onRefreshData;
 }
 
 export function renderEventsDisplay(
@@ -38,37 +41,33 @@ export function renderEventsDisplay(
         return;
     }
 
-    // Clear previous content
     eventsSectionCardContent.innerHTML = '';
     chartControlsSectionCardContent.innerHTML = '';
-
-    // Render chart interaction controls (toggle, return to current)
     renderChartInteractionControls(chartControlsSectionCardContent, isShowAllEventsActive);
 
-    // Handle different application/data states for the events section
     if (appStatus && appStatus.status === 'loading') {
         renderLoadingState(eventsSectionCardContent);
-        return; // Don't render carousel or other states if loading
+        return;
     }
 
-    if (appStatus && (appStatus.status === 'stale_ui_only' || appStatus.status === 'stale_api_cooldown' || appStatus.status.startsWith('error_'))) {
-        renderSpecialStateCard(eventsSectionCardContent, appStatus.status, appStatus.message);
-        if (appStatus.status.startsWith('error_') || appStatus.status === 'stale_api_cooldown') {
-            // For hard errors or when API is on cooldown and no data is available,
-            // we might not want to show the carousel at all.
-            // The special state card is enough.
-            if (G_CONFIG.DEBUG_MODE) console.log("UIRenderer: Displaying error/cooldown card, not rendering event carousel.");
-            return; // Stop further rendering for these specific states
+    if (appStatus && (appStatus.status.startsWith('error_') || appStatus.status === 'stale_api_cooldown')) {
+        // Show special card if errors prevent data or API is on cooldown with no cache.
+        // Also show if stale data is presented without any actual events.
+        if ((appStatus.status.startsWith('error_') && (!processedEvents || processedEvents.length === 0)) || 
+            appStatus.status === 'error_api_cooldown_no_cache' ||
+            ((appStatus.status === 'stale_ui_only' || appStatus.status === 'stale_api_cooldown') && (!processedEvents || processedEvents.length === 0))) {
+            renderSpecialStateCard(eventsSectionCardContent, appStatus.status, appStatus.message);
+            if (G_CONFIG.DEBUG_MODE) console.log("UIRenderer: Displaying special state card instead of event carousel.");
+            return;
         }
-        // For 'stale_ui_only', we still show the carousel with cached data after the message.
+        // If stale but we have events, we'll show a notification via app.js, and render carousel.
     }
 
     if (processedEvents && processedEvents.length > 0) {
         renderFocusedEventCarousel(eventsSectionCardContent, processedEvents, migraineLogs, currentlyFocusedEventId);
-    } else if (!appStatus || (!appStatus.status.startsWith('error_') && appStatus.status !== 'loading' && appStatus.status !== 'stale_api_cooldown')) {
-        // Only show "No events" if not in a loading, error, or cooldown state that already has a message
+    } else {
         const noEventsMsg = document.createElement('p');
-        noEventsMsg.textContent = "No significant pressure events detected or data available for the selected period.";
+        noEventsMsg.textContent = 'No significant pressure events detected for the available period.';
         noEventsMsg.style.textAlign = 'center';
         noEventsMsg.style.padding = '20px';
         eventsSectionCardContent.appendChild(noEventsMsg);
@@ -78,250 +77,211 @@ export function renderEventsDisplay(
 
 function renderChartInteractionControls(container, isShowAllEventsActive) {
     const controlsGroupDiv = document.createElement('div');
-    controlsGroupDiv.className = 'automated-events-controls'; // Use this class for flex layout
+    controlsGroupDiv.className = 'automated-events-controls';
 
     renderShowAllEventsToggle(controlsGroupDiv, isShowAllEventsActive);
     renderReturnToCurrentButton(controlsGroupDiv);
-
+    
     container.appendChild(controlsGroupDiv);
 }
 
 function renderShowAllEventsToggle(container, isShowAllEventsActive) {
-    const toggleContainer = document.createElement('div');
+    const toggleContainer = document.createElement('label');
     toggleContainer.className = 'm3-toggle-switch-container';
-
+    
     const input = document.createElement('input');
     input.type = 'checkbox';
-    input.id = G_CONFIG.SHOW_ALL_EVENTS_TOGGLE_ID; // Use ID from config
     input.className = 'm3-toggle-switch-input';
+    input.id = G_CONFIG.SHOW_ALL_EVENTS_TOGGLE_ID;
     input.checked = isShowAllEventsActive;
     if (onShowAllEventsToggleAppCallback) {
         input.addEventListener('change', onShowAllEventsToggleAppCallback);
     }
 
-    const label = document.createElement('label');
-    label.className = 'm3-toggle-switch-label';
-    label.setAttribute('for', G_CONFIG.SHOW_ALL_EVENTS_TOGGLE_ID);
-    label.innerHTML = `
-        <div class="m3-toggle-switch-track"></div>
-        <div class="m3-toggle-switch-thumb-container">
-            <div class="m3-toggle-switch-thumb"></div>
-        </div>
-    `;
-
-    const textLabel = document.createElement('label');
+    const switchLabel = document.createElement('span');
+    switchLabel.className = 'm3-toggle-switch-label';
+    switchLabel.innerHTML = '<span class="m3-toggle-switch-track"><span class="m3-toggle-switch-thumb-container"><span class="m3-toggle-switch-thumb"></span></span></span>';
+    
+    const textLabel = document.createElement('span');
     textLabel.className = 'm3-toggle-switch-text-label';
-    textLabel.setAttribute('for', G_CONFIG.SHOW_ALL_EVENTS_TOGGLE_ID);
-    textLabel.textContent = 'Show All Events on Chart';
+    textLabel.textContent = 'Show all on chart';
 
-    toggleContainer.append(input, label, textLabel);
+    toggleContainer.append(input, switchLabel, textLabel);
     container.appendChild(toggleContainer);
 }
 
 function renderReturnToCurrentButton(container) {
     const button = document.createElement('button');
-    button.id = 'returnToCurrentEventBtn';
-    button.className = 'm3-button m3-button-text return-to-current-btn'; // Text button style
-    button.innerHTML = '<span class="material-icons">gps_fixed</span> Return to Current';
+    button.id = G_CONFIG.RETURN_TO_CURRENT_BTN_ID;
+    button.className = 'm3-button m3-button-text return-to-current-btn';
+    button.innerHTML = '<span class="material-icons">history_toggle_off</span>Return to Current';
+    button.setAttribute('aria-label', 'Return to current event');
+    
     if (onReturnToCurrentAppCallback) {
         button.addEventListener('click', (event) => {
             createRipple(event);
-            if (onReturnToCurrentAppCallback) onReturnToCurrentAppCallback();
+            onReturnToCurrentAppCallback();
         });
     }
     container.appendChild(button);
 }
 
 function renderLoadingState(container) {
-    // Reuse special card styling for consistency if desired, or simple text
-    container.innerHTML = ''; // Clear previous
+    container.innerHTML = '';
     const loadingP = document.createElement('p');
-    loadingP.textContent = "Loading pressure data and events...";
+    loadingP.textContent = 'Loading pressure data and events...';
     loadingP.style.textAlign = 'center';
     loadingP.style.padding = '20px';
     container.appendChild(loadingP);
-    if (G_CONFIG.DEBUG_MODE) console.log("UIRenderer: Displaying Loading State.");
 }
 
 function renderSpecialStateCard(container, status, message) {
-    // This function will now render inside the #pressure-events-section > .m3-card__content
-    // It should clear the container before adding the special card
     container.innerHTML = '';
-
     const cardElement = document.createElement('div');
-    // Using 'event-card' for some base styling, but also 'special-state-card' for overrides
-    cardElement.className = 'event-card special-state-card';
-
+    // Note: .event-card provides the slot structure, .special-state-card for specific styling, 
+    // .m3-card provides elevation and base card appearance.
+    cardElement.className = 'event-card special-state-card'; 
+    
+    const innerCard = document.createElement('div'); // This gets m3-card styles
+    innerCard.className = 'm3-card'; // Base elevated card styles
     if (status.includes('stale')) {
-        // Could be 'stale_ui_only' or 'stale_api_cooldown'
-        cardElement.classList.add('warning');
+        innerCard.classList.add('warning'); // CSS uses .m3-card.warning for background
     } else if (status.includes('error')) {
-        // e.g., 'error_api', 'error_cache', 'error_no_data'
-        cardElement.classList.add('error');
+        innerCard.classList.add('error'); // CSS uses .m3-card.error for background
     }
-    // Default to info if no specific class matches (though less likely with current statuses)
-
+    
     const titleElement = document.createElement('h3');
-    titleElement.className = 'm3-card__title'; // Use card title style
-    if (status.includes('stale')) titleElement.textContent = "Cached Data";
-    else if (status.includes('error')) titleElement.textContent = "Data Error";
-    else titleElement.textContent = "Information";
-    cardElement.appendChild(titleElement);
+    titleElement.className = 'm3-card__title';
+    if (status.includes('stale')) titleElement.textContent = "Cached Data Notice";
+    else if (status.includes('error')) titleElement.textContent = "Data Load Issue";
+    else titleElement.textContent = "Status Update";
+    innerCard.appendChild(titleElement);
 
     const contentWrapper = document.createElement('div');
-    contentWrapper.className = 'm3-card__content'; // Use card content style
+    contentWrapper.className = 'm3-card__content';
 
     const messageP = document.createElement('p');
-    messageP.textContent = message || "An update regarding the data status.";
+    messageP.textContent = message || "An update regarding data loading.";
     contentWrapper.appendChild(messageP);
 
-    // Add refresh button for specific states
-    if (status.includes('stale') || status === 'error_api_no_cache' || status === 'error_api_process' || status === 'error_api') {
+    if ((status.includes('stale') || status.startsWith('error_')) && onRefreshDataAppCallback) {
         const refreshButton = document.createElement('button');
-        refreshButton.id = 'refreshDataButton';
+        refreshButton.id = "refreshDataButton";
         refreshButton.className = 'm3-button m3-button-filled';
-        refreshButton.textContent = 'Refresh Data';
-        if (onRefreshDataAppCallback) {
-            refreshButton.addEventListener('click', (event) => {
-                createRipple(event);
-                if (onRefreshDataAppCallback) onRefreshDataAppCallback();
-            });
-        }
+        refreshButton.textContent = 'Try Refreshing Data';
+        refreshButton.addEventListener('click', (event) => {
+            createRipple(event);
+            onRefreshDataAppCallback();
+        });
         contentWrapper.appendChild(refreshButton);
     }
-
-    cardElement.appendChild(contentWrapper);
+    innerCard.appendChild(contentWrapper);
+    cardElement.appendChild(innerCard); // Append styled inner card to the slot
     container.appendChild(cardElement);
-    if (G_CONFIG.DEBUG_MODE) console.log(`UIRenderer: Displaying Special State Content. Status: ${status}, Message: ${message}`);
 }
 
 
 function renderFocusedEventCarousel(container, processedEvents, migraineLogs, focusedEventId) {
-    const carouselViewport = document.createElement('div'); // Renamed for clarity
-    carouselViewport.id = G_CONFIG.FOCUSED_EVENT_CAROUSEL_ID; // Assign an ID for easier selection
-    carouselViewport.className = 'focused-event-carousel-container'; // This is the viewport
-    container.appendChild(carouselViewport); // Add to main page section first
+    container.innerHTML = '';
+
+    const carouselViewport = document.createElement('div');
+    carouselViewport.id = G_CONFIG.FOCUSED_EVENT_CAROUSEL_ID;
+    carouselViewport.className = 'focused-event-carousel-container';
+    container.appendChild(carouselViewport);
 
     const cardWrapper = document.createElement('div');
-    cardWrapper.className = 'event-card-wrapper'; // This is the sliding strip
+    cardWrapper.className = 'event-card-wrapper';
     carouselViewport.appendChild(cardWrapper);
 
-    eventCardsData = processedEvents; // Store data for swipe logic
-
-    if (!eventCardsData || eventCardsData.length === 0) {
-        if (G_CONFIG.DEBUG_MODE) console.log("UIRenderer Carousel: No events for carousel.");
-        // Optionally, display a message directly here or let renderEventsDisplay handle it.
-        // For now, just ensure the structure is there but empty.
-        container.appendChild(carouselViewport); // Append empty carousel structure
-        return;
-    }
+    eventCardsData = processedEvents;
+    if (!eventCardsData || eventCardsData.length === 0) return;
 
     let initialIndex = eventCardsData.findIndex(event => event.id === focusedEventId);
-    if (initialIndex === -1) {
-        initialIndex = 0; // Default to the first card if focusedEventId is not found
-        if (G_CONFIG.DEBUG_MODE) console.warn(`UIRenderer Carousel: focusedEventId ${focusedEventId} not found. Defaulting to index 0.`);
-    }
+    if (initialIndex === -1 || !focusedEventId) initialIndex = 0;
     currentCardIndex = initialIndex;
 
     eventCardsData.forEach(eventData => {
-        const card = createEventCardDOM(eventData, migraineLogs);
-        cardWrapper.appendChild(card); // Cards go into the wrapper
+        const cardSlot = createEventCardDOM(eventData, migraineLogs); // Returns the outer .event-card slot
+        cardWrapper.appendChild(cardSlot);
     });
 
-    // Create bottom controls (nav buttons, position indicator)
     const bottomControls = document.createElement('div');
     bottomControls.className = 'carousel-bottom-controls';
+    
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'carousel-dots-container';
+    eventCardsData.forEach((_, index) => {
+        const dot = document.createElement('button');
+        dot.className = 'dot';
+        dot.setAttribute('aria-label', `Go to event ${index + 1}`);
+        dot.dataset.index = index;
+        dot.addEventListener('click', () => {
+            isSwiping = false;
+            cycleToCard(index);
+        });
+        dotsContainer.appendChild(dot);
+    });
+    bottomControls.appendChild(dotsContainer);
+    carouselViewport.appendChild(bottomControls);
 
-    const prevButton = document.createElement('button');
-    prevButton.className = 'carousel-nav prev m3-button-icon'; // Basic button classes
-    prevButton.innerHTML = '<span class="material-icons">arrow_back_ios</span>';
-    prevButton.setAttribute('aria-label', 'Previous Event');
-    prevButton.addEventListener('click', () => swipeCard('prev'));
-    bottomControls.appendChild(prevButton);
-
-    const positionIndicator = document.createElement('div');
-    positionIndicator.className = 'carousel-position-indicator';
-    // Text updated in updateCarouselView
-    bottomControls.appendChild(positionIndicator);
-
-    const nextButton = document.createElement('button');
-    nextButton.className = 'carousel-nav next m3-button-icon'; // Basic button classes
-    nextButton.innerHTML = '<span class="material-icons">arrow_forward_ios</span>';
-    nextButton.setAttribute('aria-label', 'Next Event');
-    nextButton.addEventListener('click', () => swipeCard('next'));
-    bottomControls.appendChild(nextButton);
-
-    carouselViewport.appendChild(bottomControls); // Bottom controls are direct children of the viewport
-    // container.appendChild(carouselViewport); // Already appended above
-
-    // Attach touch listeners
     cardWrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
     cardWrapper.addEventListener('touchmove', handleTouchMove, { passive: true });
-    cardWrapper.addEventListener('touchend', handleTouchEnd, false); // Not passive for preventDefault potential
+    cardWrapper.addEventListener('touchend', handleTouchEnd, false);
 
-    // MODIFICATION START: Wrap initial updateCarouselView call in requestAnimationFrame
-    requestAnimationFrame(() => updateCarouselView(true)); // Initial positioning
-    // MODIFICATION END
-
-    if (G_CONFIG.DEBUG_MODE) console.log(`UIRenderer Carousel: Rendered. Initial index: ${currentCardIndex}`);
+    requestAnimationFrame(() => updateCarouselView(true));
 }
 
-function createEventCardDOM(eventData, migraineLogs) {
-    const cardElement = document.createElement('div');
-    cardElement.className = 'event-card';
-    cardElement.dataset.eventId = eventData.id;
 
-    if (!eventData.isPressureEvent) { // Calm period
-        cardElement.classList.add('calm-period-card');
-    } else { // Pressure event
-        cardElement.classList.add(`severity-${eventData.severity ? eventData.severity.toLowerCase() : 'unknown'}`);
+function createEventCardDOM(eventData, migraineLogs) {
+    const cardSlotElement = document.createElement('div'); // This is the 100% wide slide slot
+    cardSlotElement.className = 'event-card'; // Base class for the slot
+    cardSlotElement.dataset.eventId = eventData.id;
+
+    // Apply type-specific and severity classes to the outer cardSlotElement for CSS targeting
+    if (!eventData.isPressureEvent) {
+        cardSlotElement.classList.add('calm-period-card');
+    } else {
+        cardSlotElement.classList.add(`severity-${eventData.severity ? eventData.severity.toLowerCase() : 'unknown'}`);
     }
+
+    // Create the inner container that will hold the actual card styling and content
+    const innerContainer = document.createElement('div');
+    innerContainer.className = 'event-card-inner-container m3-card'; // Gets .m3-card styles + specific class
 
     const title = document.createElement('h3');
     title.className = 'm3-card__title';
     title.textContent = eventData.isPressureEvent ?
         `${eventData.type.charAt(0).toUpperCase() + eventData.type.slice(1)} (${eventData.severity || 'N/A'})` :
-        "Calm Period";
-    cardElement.appendChild(title);
+        'Calm Period';
+    innerContainer.appendChild(title);
 
-    const cardInnerContent = document.createElement('div');
-    cardInnerContent.className = 'm3-card__content'; // This will be the scrollable part
+    const cardInnerContent = document.createElement('div'); // Scrollable part
+    cardInnerContent.className = 'm3-card__content';
 
     const startTimeFormatted = formatUnixTimestamp(eventData.startTime);
     const endTimeFormatted = formatUnixTimestamp(eventData.endTime);
 
-    let detailsHTML = `<p><strong>Start:</strong> ${startTimeFormatted.dateString}, ${startTimeFormatted.timeString}</p>`;
-    detailsHTML += `<p><strong>End:</strong> ${endTimeFormatted.dateString}, ${endTimeFormatted.timeString}</p>`;
+    let detailsHTML = `<p><strong>Time:</strong> ${startTimeFormatted.timeString} to ${endTimeFormatted.timeString} (${startTimeFormatted.dateString})</p>`;
     detailsHTML += `<p><strong>Duration:</strong> ${eventData.durationHours.toFixed(1)} hrs</p>`;
 
     if (eventData.isPressureEvent) {
-        detailsHTML += `<p><strong>Pressure Change:</strong> ${eventData.pressureChange.toFixed(1)} hPa</p>`;
+        detailsHTML += `<p><strong>Pressure Change:</strong> ${eventData.pressureChange.toFixed(1)} hPa (${eventData.startPressure.toFixed(0)} to ${eventData.endPressure.toFixed(0)} hPa)</p>`;
         detailsHTML += `<p><strong>Rate:</strong> ${eventData.rateOfChange.toFixed(2)} hPa/hr</p>`;
-        // Add select for migraine logging only for pressure events
-        cardInnerContent.innerHTML = detailsHTML; // Set basic details first
-        cardInnerContent.appendChild(renderMigraineSelect(eventData.id, migraineLogs));
-    } else {
-        // For calm periods, check for next event info
-        if (eventData.nextEventInfo && eventData.nextEventInfo.type) {
-            detailsHTML += `<p class="next-event-info"><strong>Next Event:</strong> ${eventData.nextEventInfo.type} (${eventData.nextEventInfo.severity}) starts at ${formatUnixTimestamp(eventData.nextEventInfo.startTime).timeString}</p>`;
-        } else {
-            detailsHTML += `<p class="next-event-info">No significant pressure event follows immediately.</p>`;
-        }
         cardInnerContent.innerHTML = detailsHTML;
-    }
-
-    cardElement.appendChild(cardInnerContent);
-
-    // Add event listener for the select if it was added
-    if (eventData.isPressureEvent) {
-        const selectInCard = cardInnerContent.querySelector('select.m3-table-select');
-        if (selectInCard && onEventMigraineChangeAppCallback) {
-            selectInCard.addEventListener('change', (e) => {
-                onEventMigraineChangeAppCallback(eventData.id, e.target);
-            });
+        cardInnerContent.appendChild(renderMigraineSelect(eventData.id, migraineLogs, eventData.type));
+    } else { // Calm period
+        cardInnerContent.innerHTML = detailsHTML;
+        if (eventData.nextEventInfo && eventData.nextEventInfo.type) {
+            const nextEventTime = formatUnixTimestamp(eventData.nextEventInfo.startTime);
+            const nextEventP = document.createElement('p');
+            nextEventP.className = 'next-event-info';
+            nextEventP.innerHTML = `<strong>Next Event:</strong> ${eventData.nextEventInfo.type} (${eventData.nextEventInfo.severity}) starts at ${nextEventTime.timeString}`;
+            cardInnerContent.appendChild(nextEventP);
         }
     }
-    return cardElement;
+    innerContainer.appendChild(cardInnerContent);
+    cardSlotElement.appendChild(innerContainer); // Append styled inner container to the slide slot
+    return cardSlotElement;
 }
 
 export function updateCarouselCardContent(eventId, newEventData, migraineLogs) {
@@ -330,201 +290,159 @@ export function updateCarouselCardContent(eventId, newEventData, migraineLogs) {
     const cardWrapper = carouselViewport.querySelector('.event-card-wrapper');
     if (!cardWrapper) return;
 
-    const cardToUpdate = cardWrapper.querySelector(`.event-card[data-event-id="${eventId}"]`);
-
-    if (cardToUpdate) {
-        // Create a new card with the new data
-        const tempCard = createEventCardDOM(newEventData, migraineLogs);
-
-        // Replace content carefully
-        // Clear existing classes related to severity, calm status
-        cardToUpdate.className = 'event-card'; // Reset to base
-        if (!newEventData.isPressureEvent) {
-            cardToUpdate.classList.add('calm-period-card');
-        } else {
-            cardToUpdate.classList.add(`severity-${newEventData.severity ? newEventData.severity.toLowerCase() : 'unknown'}`);
-        }
-
-        const oldTitle = cardToUpdate.querySelector('.m3-card__title');
-        const oldInnerContent = cardToUpdate.querySelector('.m3-card__content');
-        const newTitle = tempCard.querySelector('.m3-card__title');
-        const newInnerContent = tempCard.querySelector('.m3-card__content');
-
-        if (oldTitle && newTitle) oldTitle.replaceWith(newTitle);
-        else if (newTitle) cardToUpdate.prepend(newTitle); // Should not happen if structure is consistent
-
-        if (oldInnerContent && newInnerContent) oldInnerContent.replaceWith(newInnerContent);
-        else if (newInnerContent) cardToUpdate.appendChild(newInnerContent); // Should not happen
-
-        // Re-attach select listener if it's a pressure event
-        if (newEventData.isPressureEvent) {
-            const newSelect = cardToUpdate.querySelector('select.m3-table-select');
-            if (newSelect && onEventMigraineChangeAppCallback) {
-                newSelect.addEventListener('change', (e) => {
-                    onEventMigraineChangeAppCallback(eventId, e.target);
-                });
-            }
-        }
-        // Update active state based on currentCardIndex
-        cardToUpdate.classList.toggle('event-card--active', currentCardIndex >= 0 && eventCardsData[currentCardIndex] && eventCardsData[currentCardIndex].id === eventId);
-        if (G_CONFIG.DEBUG_MODE) console.log(`UIRenderer Carousel: Updated card content for event ${eventId}`);
-    } else {
-        if (G_CONFIG.DEBUG_MODE) console.warn(`UIRenderer Carousel: Could not find card ${eventId} to update content.`);
+    const cardSlotToUpdate = cardWrapper.querySelector(`.event-card[data-event-id="${eventId}"]`);
+    if (!cardSlotToUpdate) {
+        if (G_CONFIG.DEBUG_MODE) console.warn(`UIRenderer Carousel: Could not find card slot ${eventId} to update content.`);
+        return;
     }
-}
 
+    // Create a new card slot (which includes its inner container) with the new data
+    const tempCardSlot = createEventCardDOM(newEventData, migraineLogs);
+    const newInnerContainer = tempCardSlot.querySelector('.event-card-inner-container');
+
+    // Update classes on the outer cardSlotToUpdate
+    cardSlotToUpdate.className = 'event-card'; // Reset base class for the slot
+    if (!newEventData.isPressureEvent) {
+        cardSlotToUpdate.classList.add('calm-period-card');
+    } else {
+        cardSlotToUpdate.classList.add(`severity-${newEventData.severity ? newEventData.severity.toLowerCase() : 'unknown'}`);
+    }
+
+    // Replace the old inner container with the new one
+    const currentInnerContainer = cardSlotToUpdate.querySelector('.event-card-inner-container');
+    if (currentInnerContainer && newInnerContainer) {
+        currentInnerContainer.replaceWith(newInnerContainer);
+    } else if (newInnerContainer) { // If for some reason old inner container wasn't there
+        cardSlotToUpdate.innerHTML = ''; // Clear existing content of the slot
+        cardSlotToUpdate.appendChild(newInnerContainer);
+    }
+    
+    // Update active state visual - .event-card--active class is on the outer .event-card (the slot)
+    const isActive = currentCardIndex >= 0 && eventCardsData[currentCardIndex] && eventCardsData[currentCardIndex].id === eventId;
+    cardSlotToUpdate.classList.toggle('event-card--active', isActive);
+    // CSS will handle styling of inner container based on parent's active state.
+}
 
 function updateCarouselView(isInitial = false) {
     const carouselViewport = document.getElementById(G_CONFIG.FOCUSED_EVENT_CAROUSEL_ID);
-    if (!carouselViewport) {
-        if(G_CONFIG.DEBUG_MODE) console.warn("UIRenderer: Carousel viewport not found for update.");
-        return;
-    }
+    if (!carouselViewport) return;
+    
     const cardWrapper = carouselViewport.querySelector('.event-card-wrapper');
-    if (!cardWrapper || eventCardsData.length === 0) {
-        if(G_CONFIG.DEBUG_MODE && carouselViewport && eventCardsData.length === 0) console.log("UIRenderer: No cards in wrapper for update.");
-        else if(G_CONFIG.DEBUG_MODE && carouselViewport) console.warn("UIRenderer: Card wrapper not found for update.");
-        // Clear controls if no cards
-        const positionIndicator = carouselViewport.querySelector('.carousel-position-indicator');
-        const prevButton = carouselViewport.querySelector('.carousel-nav.prev');
-        const nextButton = carouselViewport.querySelector('.carousel-nav.next');
-        if (positionIndicator) positionIndicator.textContent = '0/0';
-        if (prevButton) prevButton.disabled = true;
-        if (nextButton) nextButton.disabled = true;
+    const dotsContainer = carouselViewport.querySelector('.carousel-dots-container');
+
+    if (!cardWrapper || !dotsContainer || eventCardsData.length === 0) {
+        if(dotsContainer) dotsContainer.innerHTML = ''; // Clear dots if no cards
         return;
     }
 
-    const positionIndicator = carouselViewport.querySelector('.carousel-position-indicator');
-    const prevButton = carouselViewport.querySelector('.carousel-nav.prev');
-    const nextButton = carouselViewport.querySelector('.carousel-nav.next');
-
-    // Ensure currentCardIndex is valid
     currentCardIndex = Math.max(0, Math.min(currentCardIndex, eventCardsData.length - 1));
     if (isNaN(currentCardIndex)) currentCardIndex = 0;
 
-
-    const viewportWidth = carouselViewport.clientWidth; // CRITICAL: Use viewport's clientWidth
+    const viewportWidth = carouselViewport.clientWidth;
     const offset = -currentCardIndex * viewportWidth;
 
-    requestAnimationFrame(() => { // Ensure transform update is smooth
+    requestAnimationFrame(() => {
         cardWrapper.style.transform = `translateX(${offset}px)`;
 
-        const cards = cardWrapper.querySelectorAll('.event-card');
-        cards.forEach((card, index) => {
-            card.classList.toggle('event-card--active', index === currentCardIndex);
+        const cardSlots = cardWrapper.querySelectorAll('.event-card');
+        cardSlots.forEach((slot, index) => {
+            slot.classList.toggle('event-card--active', index === currentCardIndex);
         });
 
-        if (positionIndicator) {
-            positionIndicator.textContent = `${currentCardIndex + 1}/${eventCardsData.length}`;
-        }
-        if (prevButton) {
-            prevButton.disabled = currentCardIndex === 0;
-        }
-        if (nextButton) {
-            nextButton.disabled = currentCardIndex === eventCardsData.length - 1;
-        }
+        const dots = dotsContainer.querySelectorAll('.dot');
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentCardIndex);
+        });
     });
-
-    // Call app.js callback if focus changed and not initial load (or if explicit focus needed on init)
-    if (!isInitial && onSwipeEventAppCallback && eventCardsData[currentCardIndex]) {
-        onSwipeEventAppCallback(eventCardsData[currentCardIndex].id);
-    } else if (isInitial && onSwipeEventAppCallback && eventCardsData[currentCardIndex]) {
-        // On initial load, we also want to notify app about the focused event
-        // This ensures chart highlights are set correctly based on initial focus.
+    
+    if (onSwipeEventAppCallback && eventCardsData[currentCardIndex]) {
         onSwipeEventAppCallback(eventCardsData[currentCardIndex].id);
     }
-    if (G_CONFIG.DEBUG_MODE && !isInitial) console.log(`UIRenderer Carousel: View updated. Index: ${currentCardIndex}, ID: ${eventCardsData[currentCardIndex]?.id}, ViewportWidth: ${viewportWidth}`);
 }
 
 
 export async function cycleToCard(targetIndex, isPageLoadAnimation = false) {
     const carouselViewport = document.getElementById(G_CONFIG.FOCUSED_EVENT_CAROUSEL_ID);
-    if (!carouselViewport) {
-        if(G_CONFIG.DEBUG_MODE) console.error("UIRenderer: Carousel viewport not found for cycleToCard.");
-        return;
-    }
-    const cardWrapper = carouselViewport.querySelector('.event-card-wrapper');
+    if (!carouselViewport) return;
 
-    if (!cardWrapper || eventCardsData.length === 0) {
-        if(G_CONFIG.DEBUG_MODE) console.error("UIRenderer: Carousel viewport or wrapper not found, or no cards, for cycleToCard.");
-        return;
-    }
+    const cardWrapper = carouselViewport.querySelector('.event-card-wrapper');
+    if (!cardWrapper || !eventCardsData || eventCardsData.length === 0) return;
+    
     targetIndex = Math.max(0, Math.min(targetIndex, eventCardsData.length - 1));
     if(isNaN(targetIndex)) targetIndex = 0;
+    
+    const oldIndex = currentCardIndex;
+    currentCardIndex = targetIndex;
 
-    if (G_CONFIG.DEBUG_MODE) console.log(`UIRenderer Carousel: Cycling to card index ${targetIndex}. PageLoadAnim: ${isPageLoadAnimation}`);
-
-    if (isPageLoadAnimation && Math.abs(targetIndex - currentCardIndex) > 1 && currentCardIndex !== targetIndex) {
-        // Quick cycle animation for page load jump
-        cardWrapper.style.transition = 'none'; // Disable transition for jump
-        let tempIndex = currentCardIndex;
-        const direction = targetIndex > currentCardIndex ? 1 : -1;
-
+    if (isPageLoadAnimation && Math.abs(targetIndex - oldIndex) > 1 && oldIndex !== targetIndex) {
+        cardWrapper.style.transition = 'none';
+        let tempIndex = oldIndex;
+        const direction = (targetIndex > oldIndex) ? 1 : -1;
+        
         const cycleInterval = setInterval(() => {
             tempIndex += direction;
-            const tempOffset = -tempIndex * carouselViewport.clientWidth;
-            cardWrapper.style.transform = `translateX(${tempOffset}px)`;
-            const cards = cardWrapper.querySelectorAll('.event-card');
-            cards.forEach((card, idx) => card.classList.toggle('event-card--active', idx === tempIndex));
-
+            const intermediateOffset = -tempIndex * carouselViewport.clientWidth;
+            cardWrapper.style.transform = `translateX(${intermediateOffset}px)`;
 
             if (tempIndex === targetIndex) {
                 clearInterval(cycleInterval);
-                currentCardIndex = targetIndex;
-                cardWrapper.style.transition = 'transform 0.3s ease-in-out'; // Re-enable transition
-                updateCarouselView(false); // Final update with correct styles & callback
+                cardWrapper.style.transition = 'transform 0.3s ease-in-out';
+                updateCarouselView(false); // false -> implies user action for callback context
             }
-        }, 50); // Adjust speed as needed
+        }, 30);
     } else {
-        currentCardIndex = targetIndex;
-        updateCarouselView(true); // Treat as initial focus for app callback
+        updateCarouselView(isPageLoadAnimation);
     }
 }
 
 function swipeCard(direction) {
-    if (direction === 'next') {
-        if (currentCardIndex < eventCardsData.length - 1) {
-            currentCardIndex++;
-        }
-    } else if (direction === 'prev') {
-        if (currentCardIndex > 0) {
-            currentCardIndex--;
-        }
+    if (direction === 'next' && currentCardIndex < eventCardsData.length - 1) {
+        currentCardIndex++;
+    } else if (direction === 'prev' && currentCardIndex > 0) {
+        currentCardIndex--;
     }
-    updateCarouselView(false); // isInitial = false to trigger app callback
+    updateCarouselView(false);
 }
 
-// Touch handling
 function handleTouchStart(event) {
+    isSwiping = false;
     touchStartX = event.touches[0].clientX;
-    touchEndX = touchStartX; // Initialize touchEndX
+    touchEndX = touchStartX;
 }
 
 function handleTouchMove(event) {
+    isSwiping = true;
     touchEndX = event.touches[0].clientX;
 }
 
 function handleTouchEnd() {
+    if (!isSwiping || eventCardsData.length <= 1) {
+        isSwiping = false;
+        return;
+    }
     const deltaX = touchEndX - touchStartX;
-    const threshold = 50; // Minimum swipe distance in pixels
+    const threshold = 50;
 
     if (Math.abs(deltaX) > threshold) {
-        if (deltaX < 0) swipeCard('next'); // Swipe left
-        else swipeCard('prev');         // Swipe right
+        if (deltaX < 0) swipeCard('next');
+        else swipeCard('prev');
     }
-    // Reset for next touch
+    isSwiping = false;
     touchStartX = 0;
     touchEndX = 0;
 }
 
-function renderMigraineSelect(eventId, migraineLogs) {
+function renderMigraineSelect(eventId, migraineLogs, eventType) {
+    const selectContainer = document.createElement('div');
+    selectContainer.style.marginTop = '10px';
+
     const selectMigraine = document.createElement('select');
-    selectMigraine.classList.add('m3-table-select'); // Reuse table select styling
+    selectMigraine.classList.add('m3-table-select');
     selectMigraine.dataset.eventId = eventId;
 
     const defaultOption = document.createElement('option');
     defaultOption.value = "";
-    defaultOption.textContent = "Log Migraine...";
+    defaultOption.textContent = `Log Migraine for ${eventType || 'Event'}`;
     selectMigraine.appendChild(defaultOption);
 
     G_CONFIG.MIGRAINE_SEVERITIES.forEach(severity => {
@@ -538,31 +456,31 @@ function renderMigraineSelect(eventId, migraineLogs) {
     if (loggedMigraine && loggedMigraine.severity) {
         selectMigraine.value = loggedMigraine.severity.toLowerCase();
     }
-    return selectMigraine;
+
+    selectMigraine.addEventListener('change', (e) => {
+        if (onEventMigraineChangeAppCallback) {
+            onEventMigraineChangeAppCallback(eventId, e.target.value);
+        }
+    });
+    selectContainer.appendChild(selectMigraine);
+    return selectContainer;
 }
 
 export function showNotification(message, type = 'info', duration = 3000) {
     const notificationArea = document.getElementById(G_CONFIG.NOTIFICATION_AREA_ID);
-    if (!notificationArea) {
-        if (G_CONFIG.DEBUG_MODE) console.warn('UIRenderer: Notification area not found for message:', message);
-        return;
-    }
+    if (!notificationArea) return;
 
     const notification = document.createElement('div');
     notification.className = `m3-notification ${type}`;
     notification.textContent = message;
+    notificationArea.prepend(notification); 
 
-    notificationArea.appendChild(notification);
-
-    // Trigger animation
-    requestAnimationFrame(() => {
-        notification.classList.add('show');
-    });
+    requestAnimationFrame(() => notification.classList.add('show'));
 
     setTimeout(() => {
         notification.classList.remove('show');
         notification.addEventListener('transitionend', () => {
-            try { if (notification.parentNode) notificationArea.removeChild(notification); } catch (e) { /* ignore */ }
+            try { if (notification.parentNode) notificationArea.removeChild(notification); } catch (e) {}
         }, { once: true });
     }, duration);
 }
@@ -571,9 +489,6 @@ export function updateShowAllEventsToggleState(isActive) {
     const toggleSwitchInput = document.getElementById(G_CONFIG.SHOW_ALL_EVENTS_TOGGLE_ID);
     if (toggleSwitchInput) {
         toggleSwitchInput.checked = isActive;
-        if (G_CONFIG.DEBUG_MODE) console.log(`UIRenderer: Toggle switch ${G_CONFIG.SHOW_ALL_EVENTS_TOGGLE_ID} state set to: ${isActive}`);
-    } else {
-        if (G_CONFIG.DEBUG_MODE) console.warn(`UIRenderer: Toggle switch ${G_CONFIG.SHOW_ALL_EVENTS_TOGGLE_ID} not found when trying to update state.`);
     }
 }
 // filename: js/uiRenderer.js

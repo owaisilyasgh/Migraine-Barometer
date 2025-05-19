@@ -6,6 +6,7 @@
     --m3-on-primary: #FFFFFF;
     --m3-primary-container: #EADDFF;
     --m3-on-primary-container: #21005E;
+    --m3-primary-container-hover: #E0D5F5; /* Custom lighter shade for hover */
     --m3-primary-rgb: 103, 80, 164; /* For RGBA usage */
 
     /* Secondary */
@@ -19,83 +20,83 @@
     --m3-on-tertiary: #FFFFFF;
     --m3-tertiary-container: #FFD8E4;
     --m3-on-tertiary-container: #370B1E;
+    --m3-tertiary-container-semitransparent: rgba(255, 216, 228, 0.7); /* For special state card background */
+
 
     /* Error */
     --m3-error: #B3261E;
     --m3-on-error: #FFFFFF;
     --m3-error-container: #F9DEDC;
     --m3-on-error-container: #410E0B;
+    --m3-error-container-semitransparent: rgba(249, 222, 220, 0.7); /* For special state card background */
 
     /* Surface */
     --m3-surface-dim: #DED8E1;
     --m3-surface: #FFFBFE; /* Main background */
     --m3-surface-bright: #FFFBFE;
     --m3-surface-container-lowest: #FFFFFF;
-    --m3-surface-container-low: #F7F2FA;
+    --m3-surface-container-low: #F7F2FA; /* A bit off-white, good for cards */
     --m3-surface-container: #F3EDF7;
     --m3-surface-container-high: #ECE6F0;
     --m3-surface-container-highest: #E6E0E9;
     --m3-on-surface: #1C1B1F;
-    --m3-on-surface-rgb: 28, 27, 31; /* For RGBA usage */
     --m3-on-surface-variant: #49454E;
+    --m3-on-surface-rgb: 28, 27, 31; /* For RGBA usage */
     --m3-on-surface-variant-rgb: 73, 69, 79; /* For RGBA usage with select arrow */
+
 
     /* Inverse Surface (for snackbars, etc.) */
     --m3-inverse-surface: #313033;
     --m3-inverse-on-surface: #F4EFF4;
-    --m3-inverse-primary: #D0BCFF;
+    --m3-inverse-primary: #D0BCFF; /* For elements on inverse surface */
 
     /* Outline */
     --m3-outline: #79747E;
-    --m3-outline-variant: #C4C7C5;
+    --m3-outline-variant: #CAC4CF;
 
     /* Scrim */
     --m3-scrim: #000000; /* Opacity applied in use */
 
     /* Shadow - Placeholder for simplified web shadows */
-    --m3-shadow-color: rgba(0, 0, 0, 0.2);
+    --m3-shadow-color: #000000;
 
     /* Typography */
     --m3-font-family-brand: 'Roboto', sans-serif;
     --m3-font-family-plain: 'Roboto', sans-serif;
 
-    /* M3 Type Scale reference (use these for consistency) */
     /* Display */
-    --m3-display-large-font-family: var(--m3-font-family-brand);
-    --m3-display-large-font-weight: 400;
-    --m3-display-large-font-size: 57px;
-    --m3-display-large-line-height: 64px;
-    --m3-display-large-letter-spacing: -0.25px;
+    --m3-display-large-font: 400 57px/64px var(--m3-font-family-brand);
+    --m3-display-medium-font: 400 45px/52px var(--m3-font-family-brand);
+    --m3-display-small-font: 400 36px/44px var(--m3-font-family-brand);
 
     /* Headline */
-    --m3-headline-large-font-family: var(--m3-font-family-brand);
-    --m3-headline-large-font-weight: 400;
-    --m3-headline-large-font-size: 32px;
-    --m3-headline-large-line-height: 40px;
-    --m3-headline-large-letter-spacing: 0px;
+    --m3-headline-large-font: 400 32px/40px var(--m3-font-family-brand);
+    --m3-headline-medium-font: 400 28px/36px var(--m3-font-family-brand);
+    --m3-headline-small-font: 400 24px/32px var(--m3-font-family-brand);
 
     /* Title */
-    --m3-title-large-font-family: var(--m3-font-family-brand);
+    --m3-title-large-font: 500 22px/28px var(--m3-font-family-plain);
+    --m3-title-medium-font: 500 16px/24px var(--m3-font-family-plain); /* Weight: Medium 500 */
+    --m3-title-small-font: 500 14px/20px var(--m3-font-family-plain); /* Weight: Medium 500 */
     --m3-title-large-font-weight: 500; /* Note: M3 uses 400 for Title Large, but 500 is common for emphasis */
-    --m3-title-large-font-size: 22px;
-    --m3-title-large-line-height: 28px;
-    --m3-title-large-letter-spacing: 0px;
+
 
     /* Label */
-    --m3-label-large-font-family: var(--m3-font-family-plain);
+    --m3-label-large-font: 500 14px/20px var(--m3-font-family-plain); /* Weight: Medium 500 */
+    --m3-label-medium-font: 500 12px/16px var(--m3-font-family-plain);/* Weight: Medium 500 */
+    --m3-label-small-font: 500 11px/16px var(--m3-font-family-plain); /* Weight: Medium 500 */
     --m3-label-large-font-weight: 500; /* Medium */
-    --m3-label-large-font-size: 14px;
-    --m3-label-large-line-height: 20px;
-    --m3-label-large-letter-spacing: 0.1px;
+
 
     /* Body */
-    --m3-body-large-font-family: var(--m3-font-family-plain);
-    --m3-body-large-font-weight: 400;
-    --m3-body-large-font-size: 16px;
-    --m3-body-large-line-height: 24px;
+    --m3-body-large-font: 400 16px/24px var(--m3-font-family-plain);
+    --m3-body-medium-font: 400 14px/20px var(--m3-font-family-plain);
+    --m3-body-small-font: 400 12px/16px var(--m3-font-family-plain);
     --m3-body-large-letter-spacing: 0.5px; /* Or 0.15px if less spacing is desired */
 
+
     /* Shape */
+    --m3-shape-corner-none: 0px;
     --m3-shape-corner-xs: 4px;
     --m3-shape-corner-sm: 8px;
     --m3-shape-corner-md: 12px;
@@ -105,28 +106,35 @@
 
     /* Elevation - using simplified box-shadows for web */
     /* Based on M3 elevation levels (dp converted to px, shadows adjusted) */
+    /* Level 0 (no shadow) */
     --m3-elevation-0: none;
-    --m3-elevation-1: 0 1px 2px 0 var(--m3-shadow-color), 0 1px 3px 0 var(--m3-shadow-color);
-    --m3-elevation-2: 0 1px 2px 0 var(--m3-shadow-color), 0 2px 6px 2px var(--m3-shadow-color);
-    --m3-elevation-3: 0 1px 3px 0 var(--m3-shadow-color), 0 4px 8px 3px var(--m3-shadow-color);
-    /* Add more elevation levels as needed */
+    /* Level 1 (e.g., cards, FAB resting) */
+    --m3-elevation-1: 0px 1px 3px 1px rgba(0,0,0,0.15), 0px 1px 2px 0px rgba(0,0,0,0.3);
+    /* Level 2 (e.g., raised button resting, primary navigation tab, search bar) */
+    --m3-elevation-2: 0px 2px 6px 2px rgba(0,0,0,0.15), 0px 1px 2px 0px rgba(0,0,0,0.3);
+    /* Level 3 (e.g., FAB pressed, dialogs, menus) */
+    --m3-elevation-3: 0px 1px 3px 0px rgba(0,0,0,0.3), 0px 4px 8px 3px rgba(0,0,0,0.15);
+    /* Level 4 (e.g., Nav drawer modal) */
+    --m3-elevation-4: 0px 2px 3px 0px rgba(0,0,0,0.3), 0px 6px 10px 4px rgba(0,0,0,0.15);
+    /* Level 5 (e.g., Bottom sheet modal) */
+    --m3-elevation-5: 0px 4px 4px 0px rgba(0,0,0,0.3), 0px 8px 12px 6px rgba(0,0,0,0.15);
+
+    /* State Layers Opacity (for hover, focus, pressed, dragged states) */
+    --m3-hover-state-layer-opacity: 0.08;
+    --m3-focus-state-layer-opacity: 0.12;
+    --m3-pressed-state-layer-opacity: 0.12;
+    --m3-dragged-state-layer-opacity: 0.16;
 }
 
 /* Global M3 Body Styles */
 .m3-body {
-    font-family: var(--m3-body-large-font-family);
-    font-size: var(--m3-body-large-font-size);
-    line-height: var(--m3-body-large-line-height);
-    letter-spacing: var(--m3-body-large-letter-spacing);
-    color: var(--m3-on-surface);
-    background-color: var(--m3-surface);
     margin: 0;
-    padding: 0;
+    font-family: var(--m3-font-family-plain, sans-serif);
+    font: var(--m3-body-large-font); /* Default body text */
+    background-color: var(--m3-surface);
+    color: var(--m3-on-surface);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
 }
 
 /* Basic reset for box-sizing */
@@ -137,6 +145,23 @@
 /* Ensure HTML and BODY take full height for footer behavior */
 html, body {
     height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Headings using M3 Type Scale */
+h1, .m3-display-large { font: var(--m3-display-large-font); margin: 0 0 16px 0; }
+h2, .m3-headline-large { font: var(--m3-headline-large-font); margin: 0 0 12px 0; }
+h3, .m3-title-large { font: var(--m3-title-large-font); margin: 0 0 8px 0; }
+/* Add more specific heading styles (h4-h6 or class-based) as needed */
+
+/* Links style (simple default) */
+a {
+    color: var(--m3-primary);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
 }
 
 /* Dynamic theme class placeholders - JavaScript will add these */
@@ -144,4 +169,5 @@ html, body {
 /* .theme-mode-dark { ... would define dark theme variables ... } */
 /* .theme-dynamic-colors { ... populated by Material Theme Builder JS ... } */
 
+@keyframes m3-ripple-animation { to { transform: scale(4); opacity: 0; } }
 /* filename: css/m3-core.css */

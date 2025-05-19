@@ -1,65 +1,62 @@
 /* css/layout.css */
 /* Top App Bar */
 .m3-top-app-bar {
-    background-color: var(--m3-surface-container);
+    background-color: var(--m3-surface-container-high); /* M3 recommended color */
     color: var(--m3-on-surface);
     padding: 0 16px;
-    height: 56px; /* Mobile Top App Bar height */
     display: flex;
     align-items: center;
-    position: fixed;
+    height: 56px; /* Mobile Top App Bar height */
+    position: fixed; /* Stick to top */
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
-    box-shadow: var(--m3-elevation-1);
+    z-index: 100; /* Ensure it's above other content */
+    box-shadow: var(--m3-elevation-2); /* Add shadow for separation */
 }
 
 .m3-top-app-bar__title {
-    font: var(--m3-title-medium-font);
+    font: var(--m3-title-large-font);
+    color: var(--m3-on-surface-variant); /* M3 spec */
     margin: 0;
-    flex-grow: 1;
+    line-height: 1; /* Ensure it's vertically centered if needed */
 }
 
 /* Main Content Area */
 .m3-main-content {
-    padding: 8px;
+    padding: 8px; /* Overall padding around the content */
     padding-top: 64px; /* 56px app bar + 8px top padding */
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    gap: 8px;
-    overflow: hidden;
-    min-height: 0;
-    max-width: 100%;
-    box-sizing: border-box;
+    padding-bottom: 16px;
+    max-width: 1200px; /* Optional: max width for very wide screens */
+    margin: 0 auto; /* Center content if max-width is applied */
+    display: grid;
+    gap: 16px; /* Space between sections/cards */
 }
 
+/* Section Cards Specific Layout Adjustments (if any) */
 #pressure-chart-section.m3-card {
-    flex-shrink: 0;
+    /* No specific layout adjustments beyond .m3-card default for now */
+    /* Content padding is handled by .m3-card rules */
 }
 
 .chart-controls-card.m3-card {
-    padding: 8px 12px;
-    margin-top: 0;
-    margin-bottom: 0;
-    flex-shrink: 0;
+    /* Minimal height, content drives it */
 }
 .chart-controls-card .m3-card__content {
-    padding: 0;
+    padding: 8px 16px; /* Reduced padding for compact controls */
 }
 
 #pressure-events-section.m3-card {
-    flex-grow: 1;
-    min-height: 0;
-    display: flex;
+    min-height: 250px; /* Ensure space for carousel elements */
+    /* padding: 0; /* Outer card padding might interfere with full-width carousel needs - NOW HANDLED BY .m3-card */
+    display: flex; /* Added for consistency, enables flex behavior if needed */
     flex-direction: column;
-    /* padding: 0; /* Outer card padding might interfere with full-width carousel needs */
 }
+
 /* The direct .m3-card__content child of the events section card */
 #pressure-events-section.m3-card > .m3-card__content {
-    flex-grow: 1;
-    min-height: 0;
+    flex-grow: 1; /* Allow this content area to fill the card */
+    min-height: 0; /* Important for flex children that need to scroll or manage overflow */
     display: flex; /* This allows .focused-event-carousel-container to flex-grow */
     flex-direction: column; /* Stack carousel if other elements were here */
     padding: 0; /* Remove padding here, carousel container will have its own */
@@ -67,19 +64,31 @@
 }
 
 
+/* For general responsive behavior if needed */
+@media (min-width: 768px) { /* Example breakpoint */
+    .m3-main-content {
+        /* Example: two-column layout for wider screens */
+        /* grid-template-columns: 1fr 1fr; */
+    }
+    /* Adjust span or order if using grid layout */
+    /* #pressure-events-section { grid-column: span 2; } */
+}
+
+
 html, body {
-    height: 100vh;
+    height: 100%;
     margin: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    padding: 0;
 }
 
 body.m3-body {
-    flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 100vh; /* Ensure body takes at least full viewport height */
     /* overflow-y: auto; /* Generally not needed here if main-content handles its scroll */
-    background-color: var(--m3-surface);
+}
+
+.m3-main-content {
+    flex-grow: 1; /* Ensure main content takes available space pushing footer down if any */
 }
 /* filename: css/layout.css */
